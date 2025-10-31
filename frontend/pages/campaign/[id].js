@@ -41,7 +41,7 @@ export default function CampaignDetail() {
   const tweetToContribute = () => {
     if (!campaign) return;
 
-    const tweetText = `@crowdfund fund ${campaign.type} 0.1 ${campaign.token_ca}`;
+    const tweetText = `@XFundDex fund ${campaign.type} 0.1 ${campaign.token_ca}`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
   };
@@ -183,7 +183,7 @@ export default function CampaignDetail() {
             </p>
             <div className="bg-neutral-900 border border-neutral-800 rounded p-3 mb-3">
               <code className="text-xs text-green-400">
-                @crowdfund fund {campaign.type} 0.5 {campaign.token_ca}
+                @XFundDex fund {campaign.type} 0.5 {campaign.token_ca}
               </code>
             </div>
             <button onClick={tweetToContribute} className="btn btn-primary text-sm">

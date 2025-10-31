@@ -25,7 +25,7 @@ export default function HowItWorks() {
           <div className="card mb-8">
             <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
             <p className="text-neutral-300 mb-4">
-              Pool SOL with your community to pay for DEXScreener enhanced token info. Tweet commands to <code className="text-blue-400">@crowdfund</code> to create campaigns and contribute — all without leaving Twitter.
+              Pool SOL with your community to pay for DEXScreener enhanced token info. Tweet commands to <code className="text-blue-400">@XFundDex</code> to create campaigns and contribute — all without leaving Twitter.
             </p>
             <div className="bg-blue-600/10 border-l-4 border-blue-500 p-4 rounded">
               <p className="text-blue-300 text-sm font-medium">
@@ -83,11 +83,11 @@ export default function HowItWorks() {
                   <h3 className="text-lg font-semibold text-white">Create a Campaign</h3>
                 </div>
                 <div className="bg-neutral-950 border border-neutral-700 rounded p-4 mb-3">
-                  <code className="text-blue-400">@crowdfund create dex TOKEN_CA</code>
+                  <code className="text-blue-400">@XFundDex create dex TOKEN_CA</code>
                 </div>
                 <div className="bg-neutral-900/50 border-l-2 border-blue-500/30 p-3 text-sm text-neutral-400">
                   <p className="mb-1"><strong className="text-white">Example:</strong></p>
-                  <code className="text-blue-400">@crowdfund create dex EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</code>
+                  <code className="text-blue-400">@XFundDex create dex EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</code>
                 </div>
                 <p className="text-neutral-400 text-sm mt-3">
                   Creates a 24-hour campaign. Community contributes SOL toward the DEX update.
@@ -101,11 +101,11 @@ export default function HowItWorks() {
                   <h3 className="text-lg font-semibold text-white">Fund a Campaign</h3>
                 </div>
                 <div className="bg-neutral-950 border border-neutral-700 rounded p-4 mb-3">
-                  <code className="text-green-400">@crowdfund fund dex AMOUNT TOKEN_CA</code>
+                  <code className="text-green-400">@XFundDex fund dex AMOUNT TOKEN_CA</code>
                 </div>
                 <div className="bg-neutral-900/50 border-l-2 border-green-500/30 p-3 text-sm text-neutral-400">
                   <p className="mb-1"><strong className="text-white">Example:</strong></p>
-                  <code className="text-green-400">@crowdfund fund dex 0.5 EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</code>
+                  <code className="text-green-400">@XFundDex fund dex 0.5 EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</code>
                 </div>
                 <p className="text-neutral-400 text-sm mt-3">
                   Contributes 0.5 SOL from your wallet. Any amount accepted.

@@ -109,7 +109,7 @@ export default function Home() {
                       <span className="text-sm text-white font-semibold">Start a new campaign</span>
                     </div>
                     <div className="bg-black/40 border border-blue-800/30 rounded-lg p-3 backdrop-blur-sm">
-                      <code className="text-blue-300 text-sm font-semibold">@crowdfund create dex TOKEN_CA</code>
+                      <code className="text-blue-300 text-sm font-semibold">@XFundDex create dex TOKEN_CA</code>
                     </div>
                   </div>
 
@@ -120,7 +120,7 @@ export default function Home() {
                       <span className="text-sm text-white font-semibold">Add SOL to a campaign</span>
                     </div>
                     <div className="bg-black/40 border border-green-800/30 rounded-lg p-3 backdrop-blur-sm">
-                      <code className="text-green-300 text-sm font-semibold">@crowdfund fund dex 0.5 TOKEN_CA</code>
+                      <code className="text-green-300 text-sm font-semibold">@XFundDex fund dex 0.5 TOKEN_CA</code>
                     </div>
                   </div>
                 </div>

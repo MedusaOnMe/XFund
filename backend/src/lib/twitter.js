@@ -2,16 +2,16 @@ const axios = require('axios');
 
 /**
  * Twitter API integration via RapidAPI Twitter154
- * Polls @mentions of the crowdfund handle
+ * Polls @mentions of the XFundDex handle
  */
 
 /**
- * Fetch mentions of @crowdfund handle
+ * Fetch mentions of @XFundDex handle
  * sinceId: only return tweets newer than this ID
  * Returns: array of tweet objects
  */
 async function fetchMentions(sinceId = null) {
-  const handle = process.env.TWITTER_HANDLE || 'crowdfund';
+  const handle = process.env.TWITTER_HANDLE || 'XFundDex';
   const apiKey = process.env.RAPIDAPI_KEY;
   const apiHost = process.env.RAPIDAPI_HOST;
 

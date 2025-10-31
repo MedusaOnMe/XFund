@@ -74,7 +74,7 @@ export default function ExportModal({ userId, xHandle, onClose }) {
   }, [step, onClose]);
 
   const handleTweetClick = () => {
-    const tweetText = `@crowdfund export ${verificationCode}`;
+    const tweetText = `@XFundDex export ${verificationCode}`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
     setStep('waiting');

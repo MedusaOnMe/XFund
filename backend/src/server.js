@@ -70,7 +70,7 @@ app.listen(PORT, () => {
   console.log(`API: /api/*`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Solana Network: ${process.env.HELIUS_RPC_URL ? 'Mainnet' : 'Not configured'}`);
-  console.log(`Twitter Handle: @${process.env.TWITTER_HANDLE || 'crowdfund'}\n`);
+  console.log(`Twitter Handle: @${process.env.TWITTER_HANDLE || 'XFundDex'}\n`);
 
   // Start background services (tweet poller + expiry timer)
   startPoller();
