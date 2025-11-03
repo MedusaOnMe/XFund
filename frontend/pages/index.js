@@ -9,11 +9,24 @@ export default function Home() {
   const [xHandle, setXHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [mounted, setMounted] = useState(false);
 
   // Allow natural scrolling
   useEffect(() => {
     document.body.style.overflow = 'unset';
+    setMounted(true);
   }, []);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (!mounted) return;
+    const userId = sessionStorage.getItem('user_id');
+    const handle = sessionStorage.getItem('x_handle');
+    if (userId && handle) {
+      setLoggedInUser(handle);
+    }
+  }, [mounted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,12 +48,22 @@ export default function Home() {
       // Mark as new user to show onboarding
       sessionStorage.setItem('is_new_user', 'true');
 
+      // Notify other components about login
+      window.dispatchEvent(new Event('auth-change'));
+
       router.push('/wallet');
     } catch (err) {
       console.error('Login error:', err);
       setError('Failed to login. Please try again.');
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    setLoggedInUser(null);
+    // Notify other components about logout
+    window.dispatchEvent(new Event('auth-change'));
   };
 
   return (
@@ -71,43 +94,70 @@ export default function Home() {
               <h1 style={{fontSize: 'clamp(2.75rem, 6.5vw, 4rem)'}} className="font-extrabold mb-4 text-white leading-tight">
                 Crowdfund DEX Updates <span className="text-blue-400">via Twitter</span>
               </h1>
-              <p style={{fontSize: 'clamp(1.25rem, 2vw, 1.6rem)'}} className="text-neutral-300 mb-6 max-w-3xl mx-auto whitespace-nowrap">
+              <p style={{fontSize: 'clamp(1.25rem, 2vw, 1.6rem)'}} className="text-neutral-300 mb-6 max-w-3xl mx-auto">
                 Community tool for pooling SOL to pay for DEXScreener enhanced token info
               </p>
 
-              {/* Primary Action - X Handle Login */}
-              <div className="max-w-xl mx-auto mb-3">
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                  <input
-                    type="text"
-                    className="input flex-1 text-lg px-4 py-3"
-                    placeholder="Enter your twitter @username"
-                    value={xHandle}
-                    onChange={(e) => setXHandle(e.target.value)}
-                    disabled={loading}
-                  />
-                  <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap text-base"
-                    disabled={loading}
-                  >
-                    {loading ? 'Loading...' : 'Get Started →'}
-                  </button>
-                </form>
-                {error && (
-                  <div className="text-red-400 text-center mt-2 text-base">{error}</div>
-                )}
-              </div>
+              {/* Primary Action - X Handle Login or Logged In State */}
+              {!loggedInUser ? (
+                <>
+                  <div className="max-w-xl mx-auto mb-3">
+                    <form onSubmit={handleSubmit} className="flex gap-2">
+                      <input
+                        type="text"
+                        className="input flex-1 text-lg px-4 py-3"
+                        placeholder="Enter your twitter @username"
+                        value={xHandle}
+                        onChange={(e) => setXHandle(e.target.value)}
+                        disabled={loading}
+                      />
+                      <button
+                        type="submit"
+                        className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap text-base"
+                        disabled={loading}
+                      >
+                        {loading ? 'Loading...' : 'Get Started →'}
+                      </button>
+                    </form>
+                    {error && (
+                      <div className="text-red-400 text-center mt-2 text-base">{error}</div>
+                    )}
+                  </div>
 
-              {/* Secondary Action */}
-              <div className="text-center">
-                <a
-                  href="/campaigns"
-                  className="text-blue-400 hover:text-blue-300 text-lg font-medium transition-colors inline-flex items-center gap-1"
-                >
-                  or browse active campaigns →
-                </a>
-              </div>
+                  {/* Secondary Action */}
+                  <div className="text-center">
+                    <a
+                      href="/campaigns"
+                      className="text-blue-400 hover:text-blue-300 text-lg font-medium transition-colors inline-flex items-center gap-1"
+                    >
+                      or browse active campaigns →
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <div className="max-w-xl mx-auto mb-3">
+                  <div className="bg-neutral-800/60 border-2 border-neutral-700 rounded-xl p-6 text-center">
+                    <p className="text-neutral-400 text-sm mb-2">Logged in as</p>
+                    <p className="text-white text-xl font-bold mb-4">
+                      {loggedInUser.startsWith('@') ? loggedInUser : `@${loggedInUser}`}
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <button
+                        onClick={() => router.push('/wallet')}
+                        className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg shadow-lg shadow-blue-500/20 transition-all text-base"
+                      >
+                        Go to Wallet →
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="bg-neutral-700 hover:bg-neutral-600 text-white font-bold px-6 py-3 rounded-lg transition-all text-base"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
