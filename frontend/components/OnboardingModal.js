@@ -17,8 +17,8 @@ export default function OnboardingModal({ isOpen, onClose }) {
     },
     {
       title: 'Create a Campaign',
-      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign. Verify ownership by tweeting the code, then customize with images, description, and social links.',
-      images: ['/onboarding/CreateTweet.png', '/onboarding/UpdateDex.png', '/onboarding/UpdatePage.png']
+      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign. After creation, customize your campaign with images, description, and social links.',
+      images: ['/onboarding/CreateTweet.png', '/onboarding/UpdatePage.png']
     },
     {
       title: 'Fund a Campaign',
@@ -50,23 +50,11 @@ export default function OnboardingModal({ isOpen, onClose }) {
 
   const currentStep = steps[step];
 
-  // Custom layouts for different steps based on image shapes
+  // Render images - 2 images side by side, 1 image full width
   const renderImages = () => {
     const images = currentStep.images;
 
-    // Step 0: Single wallet page
-    if (step === 0) {
-      return (
-        <div className="mb-6">
-          <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-            <img src={images[0]} alt={currentStep.title} className="w-full h-auto" />
-          </div>
-        </div>
-      );
-    }
-
-    // Step 1: Two full-page screenshots side by side
-    if (step === 1) {
+    if (images.length === 2) {
       return (
         <div className="mb-6 grid grid-cols-2 gap-4">
           {images.map((img, idx) => (
@@ -78,53 +66,19 @@ export default function OnboardingModal({ isOpen, onClose }) {
       );
     }
 
-    // Step 2: Tweet on top (full width), then 2 modals below
-    if (step === 2) {
-      return (
-        <div className="mb-6 space-y-4">
-          <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-            <img src={images[0]} alt="Create Tweet" className="w-full h-auto" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-              <img src={images[1]} alt="Verify" className="w-full h-auto" />
-            </div>
-            <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-              <img src={images[2]} alt="Update" className="w-full h-auto" />
-            </div>
-          </div>
+    // Single image
+    return (
+      <div className="mb-6">
+        <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
+          <img src={images[0]} alt={currentStep.title} className="w-full h-auto" />
         </div>
-      );
-    }
-
-    // Step 3: Single fund tweet
-    if (step === 3) {
-      return (
-        <div className="mb-6">
-          <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-            <img src={images[0]} alt={currentStep.title} className="w-full h-auto" />
-          </div>
-        </div>
-      );
-    }
-
-    // Step 4: Two export modals side by side
-    if (step === 4) {
-      return (
-        <div className="mb-6 grid grid-cols-2 gap-4">
-          {images.map((img, idx) => (
-            <div key={idx} className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-              <img src={img} alt={`${currentStep.title} - ${idx + 1}`} className="w-full h-auto" />
-            </div>
-          ))}
-        </div>
-      );
-    }
+      </div>
+    );
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-6xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-4xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
 
         {/* Step indicator */}
         <div className="flex justify-center gap-2 mb-6">
@@ -148,7 +102,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
           <h2 className="text-2xl font-bold text-white mb-3">
             {currentStep.title}
           </h2>
-          <p className="text-neutral-300 text-base leading-relaxed max-w-3xl mx-auto">
+          <p className="text-neutral-300 text-base leading-relaxed max-w-2xl mx-auto">
             {currentStep.content}
           </p>
         </div>
