@@ -22,7 +22,7 @@ export default function OnboardingModal({ isOpen, onClose, isManualOpen = false 
     },
     {
       title: 'Update Your Existing Campaign',
-      content: 'Navigate to your campaign page and click "Update Campaign". Tweet the verification code shown in the modal to verify ownership, then add images, description, and social links.',
+      content: 'Navigate to your campaign page and click "Update Campaign". Tweet the verification code shown in the pop up in order to prove you are the owner of the Twitter account, then add images, description, and social links.',
       images: ['/onboarding/UpdateModal.png', '/onboarding/UpdatePage.png']
     },
     {
@@ -32,7 +32,7 @@ export default function OnboardingModal({ isOpen, onClose, isManualOpen = false 
     },
     {
       title: 'Export Your Keys',
-      content: 'Tweet the verification code to securely export your private key and import into any Solana wallet.',
+      content: 'Tweet the verification code in order to prove you are the owner of the Twitter account. This securely exports your private key to import into any Solana wallet.',
       images: ['/onboarding/ExportKey.png', '/onboarding/ExportedKey.png']
     }
   ];
@@ -81,10 +81,24 @@ export default function OnboardingModal({ isOpen, onClose, isManualOpen = false 
       );
     }
 
-    // 2 images side by side
+    // 2 images
     if (images.length === 2) {
+      // Export Keys (step 5): stack vertically on mobile
+      if (step === 5) {
+        return (
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 max-h-[50vh] md:h-96">
+            {images.map((img, idx) => (
+              <div key={idx} className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950 h-48 md:h-full flex items-center justify-center">
+                <img src={img} alt={`${currentStep.title} - ${idx + 1}`} className="w-full h-full object-contain" />
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      // Other 2-image layouts: side by side with limited height on mobile
       return (
-        <div className="mb-4 grid grid-cols-2 gap-4 h-96">
+        <div className="mb-4 grid grid-cols-2 gap-3 md:gap-4 max-h-[35vh] md:h-96">
           {images.map((img, idx) => (
             <div key={idx} className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950 h-full flex items-center justify-center">
               <img src={img} alt={`${currentStep.title} - ${idx + 1}`} className="w-full h-full object-contain" />
