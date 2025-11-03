@@ -128,6 +128,16 @@ export default function Wallet() {
             </div>
           </div>
 
+          {/* Browse Campaigns CTA */}
+          <div className="mb-8">
+            <button
+              onClick={() => router.push('/campaigns')}
+              className="btn btn-primary w-full"
+            >
+              Browse Active Campaigns
+            </button>
+          </div>
+
           {/* My Campaigns */}
           {myCampaigns.length > 0 && (
             <div className="card">

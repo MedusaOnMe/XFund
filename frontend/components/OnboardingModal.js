@@ -17,13 +17,13 @@ export default function OnboardingModal({ isOpen, onClose }) {
     },
     {
       title: 'Create a Campaign',
-      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign for any token.',
+      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign. Include logo and banner images in your tweet, or upload them later on the site.',
       images: ['/onboarding/CreateTweet.png']
     },
     {
-      title: 'Update Your Campaign',
-      content: 'After creating, verify ownership by tweeting the code. Then add images, description, and social links to customize your campaign.',
-      images: ['/onboarding/UpdateModal.png', '/onboarding/UpdatePage.png', '/onboarding/UpdateDex.png']
+      title: 'Update Your Existing Campaign',
+      content: 'Navigate to your campaign page and click "Update Campaign". Tweet the verification code shown in the modal to verify ownership, then add images, description, and social links.',
+      images: ['/onboarding/UpdateModal.png', '/onboarding/UpdatePage.png']
     },
     {
       title: 'Fund a Campaign',
@@ -59,20 +59,23 @@ export default function OnboardingModal({ isOpen, onClose }) {
   const renderImages = () => {
     const images = currentStep.images;
 
-    // Step 4 (Update Campaign): 2 modals on top, tweet below full width
+    // Step 4 (Update Campaign): Tweet on top, 2 modals below
     if (step === 3 && images.length === 3) {
       return (
         <div className="mb-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-              <img src={images[0]} alt="Verify Modal" className="w-full h-auto" />
-            </div>
-            <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-              <img src={images[1]} alt="Update Modal" className="w-full h-auto" />
-            </div>
-          </div>
+          {/* Top row: UpdateDex tweet full width */}
           <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
             <img src={images[2]} alt="Update Tweet" className="w-full h-auto" />
+          </div>
+
+          {/* Bottom row: UpdateModal + UpdatePage side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
+              <img src={images[0]} alt="Update Modal" className="w-full h-auto" />
+            </div>
+            <div className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
+              <img src={images[1]} alt="Update Page" className="w-full h-auto" />
+            </div>
           </div>
         </div>
       );
@@ -81,10 +84,10 @@ export default function OnboardingModal({ isOpen, onClose }) {
     // 2 images side by side
     if (images.length === 2) {
       return (
-        <div className="mb-6 grid grid-cols-2 gap-4">
+        <div className="mb-6 grid grid-cols-2 gap-4 h-96">
           {images.map((img, idx) => (
-            <div key={idx} className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-              <img src={img} alt={`${currentStep.title} - ${idx + 1}`} className="w-full h-auto" />
+            <div key={idx} className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950 h-full flex items-center justify-center">
+              <img src={img} alt={`${currentStep.title} - ${idx + 1}`} className="w-full h-full object-contain" />
             </div>
           ))}
         </div>
@@ -102,7 +105,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
       <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-4xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
 
         {/* Step indicator */}

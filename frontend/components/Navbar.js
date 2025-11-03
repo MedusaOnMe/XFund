@@ -42,7 +42,7 @@ export default function Navbar() {
 
             <Link href="/campaigns">
               <span className="text-neutral-400 hover:text-white transition-colors cursor-pointer text-sm font-medium">
-                Campaigns
+                Browse Campaigns
               </span>
             </Link>
 
