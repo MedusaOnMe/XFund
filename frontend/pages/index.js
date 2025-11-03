@@ -77,7 +77,7 @@ export default function Home() {
                   <input
                     type="text"
                     className="input flex-1 text-lg px-4 py-3"
-                    placeholder="@username"
+                    placeholder="@ your Twitter username"
                     value={xHandle}
                     onChange={(e) => setXHandle(e.target.value)}
                     disabled={loading}
