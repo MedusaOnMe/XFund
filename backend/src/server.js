@@ -9,11 +9,11 @@ const { startExpiryService } = require('./services/expiry');
 /**
  * XFunder Backend API
  * Express API server + Background Workers
- * Runs on port 3001, Next.js frontend on port 3000
+ * Runs on port 8080, Next.js frontend on Railway's PORT
  */
 
 const app = express();
-const PORT = process.env.BACKEND_PORT || 3001;
+const PORT = process.env.BACKEND_PORT || 8080;
 
 // Middleware
 app.use(cors());
