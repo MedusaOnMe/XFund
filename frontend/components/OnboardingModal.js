@@ -8,27 +8,27 @@ export default function OnboardingModal({ isOpen, onClose }) {
     {
       title: 'Your Wallet is Ready',
       content: 'Deposit SOL to the wallet address shown below. This wallet holds your funds for creating and funding campaigns.',
-      image: '/onboarding/WalletPage.png'
+      images: ['/onboarding/WalletPage.png']
     },
     {
       title: 'Browse Active Campaigns',
       content: 'View all active campaigns to see what tokens need funding. Click any campaign to see details, progress, and contributors.',
-      image: '/onboarding/CampaignPage.png'
+      images: ['/onboarding/AllCampaigns.png', '/onboarding/CampaignPage.png']
     },
     {
       title: 'Create a Campaign',
-      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign. After creation, update your campaign with images, description, and links.',
-      image: '/onboarding/CreateTweet.png'
+      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign. Verify ownership by tweeting the code, then customize with images, description, and social links.',
+      images: ['/onboarding/CreateTweet.png', '/onboarding/UpdateDex.png', '/onboarding/UpdatePage.png']
     },
     {
       title: 'Fund a Campaign',
-      content: 'Tweet @XFundDex fund AMOUNT TOKEN_ADDRESS to contribute SOL from your wallet. Funds are pooled to pay for DEXScreener updates.',
-      image: '/onboarding/FundTweet.png'
+      content: 'Tweet @XFundDex fund AMOUNT TOKEN_ADDRESS to contribute SOL from your wallet. Funds are pooled together to pay for DEXScreener updates.',
+      images: ['/onboarding/FundTweet.png']
     },
     {
       title: 'Export Your Keys',
-      content: 'Export your private key anytime to import your wallet into Phantom, Solflare, or any Solana wallet.',
-      image: '/onboarding/ExportTweet.png'
+      content: 'Click Export Key from your wallet page, tweet the verification code, and securely copy your private key to import into any Solana wallet.',
+      images: ['/onboarding/ExportKey.png', '/onboarding/ExportedKey.png']
     }
   ];
 
@@ -70,13 +70,21 @@ export default function OnboardingModal({ isOpen, onClose }) {
 
         {/* Content */}
         <div className="mb-6">
-          {/* Screenshot */}
-          <div className="mb-6 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
-            <img
-              src={currentStep.image}
-              alt={currentStep.title}
-              className="w-full h-auto"
-            />
+          {/* Screenshots */}
+          <div className={`mb-6 ${
+            currentStep.images.length === 2 ? 'grid grid-cols-2 gap-3' :
+            currentStep.images.length === 3 ? 'grid grid-cols-3 gap-2' :
+            ''
+          }`}>
+            {currentStep.images.map((img, idx) => (
+              <div key={idx} className="rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
+                <img
+                  src={img}
+                  alt={`${currentStep.title} - ${idx + 1}`}
+                  className="w-full h-auto"
+                />
+              </div>
+            ))}
           </div>
 
           {/* Text */}
