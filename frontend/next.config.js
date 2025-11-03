@@ -2,9 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'export',  // Static HTML export for single-service deployment
-  distDir: 'out',
-  trailingSlash: true,
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3001/api/:path*',
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

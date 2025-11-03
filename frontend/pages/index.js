@@ -10,25 +10,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fix for static export: redirect if we're not actually on home page
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path !== '/' && path !== '/index.html') {
-        // Force router to handle this path
-        router.replace(path);
-      }
-    }
-  }, []);
-
-  // Don't render home page if URL indicates we're somewhere else
-  if (typeof window !== 'undefined') {
-    const path = window.location.pathname;
-    if (path !== '/' && path !== '/index.html') {
-      return null; // Let router handle it
-    }
-  }
-
   // Allow natural scrolling
   useEffect(() => {
     document.body.style.overflow = 'unset';

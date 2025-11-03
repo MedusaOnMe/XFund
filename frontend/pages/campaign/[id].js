@@ -22,9 +22,12 @@ export default function CampaignDetail() {
 
   useEffect(() => {
     setMounted(true);
-    // Load campaign on mount - parse ID from URL for static export compatibility
-    loadCampaign();
   }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    loadCampaign();
+  }, [id]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -40,23 +43,7 @@ export default function CampaignDetail() {
 
   const loadCampaign = async () => {
     try {
-      // Get campaign ID from router.query or parse from URL
-      let campaignId = id;
-
-      // Fallback for static export: parse from window.location
-      if (!campaignId && typeof window !== 'undefined') {
-        const match = window.location.pathname.match(/\/campaign\/([^/?]+)/);
-        if (match) {
-          campaignId = match[1];
-        }
-      }
-
-      if (!campaignId) {
-        setLoading(false);
-        return;
-      }
-
-      const data = await getCampaign(campaignId);
+      const data = await getCampaign(id);
       setCampaign(data.campaign);
       setContributions(data.contributions);
       setBalance(data.balance);
