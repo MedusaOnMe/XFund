@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IoWallet, IoRocket, IoCash, IoEye, IoKey } from 'react-icons/io5';
+import Image from 'next/image';
 
 export default function OnboardingModal({ isOpen, onClose }) {
   const [step, setStep] = useState(0);
@@ -7,27 +7,28 @@ export default function OnboardingModal({ isOpen, onClose }) {
   const steps = [
     {
       title: 'Your Wallet is Ready',
-      content: 'Deposit SOL to your wallet address shown below to get started. This wallet holds your funds for creating and contributing to campaigns.',
-      Icon: IoWallet,
-      iconColor: 'text-blue-400'
+      content: 'Deposit SOL to the wallet address shown below. This wallet holds your funds for creating and funding campaigns.',
+      image: '/onboarding/WalletPage.png'
+    },
+    {
+      title: 'Browse Active Campaigns',
+      content: 'View all active campaigns to see what tokens need funding. Click any campaign to see details, progress, and contributors.',
+      image: '/onboarding/CampaignPage.png'
     },
     {
       title: 'Create a Campaign',
-      content: 'Tweet @XFundDex create [TOKEN_CA] to start a $300 campaign. As the creator, you can add images, description, and links by editing the campaign page.',
-      Icon: IoRocket,
-      iconColor: 'text-green-400'
+      content: 'Tweet @XFundDex create TOKEN_ADDRESS to start a $300 campaign. After creation, update your campaign with images, description, and links.',
+      image: '/onboarding/CreateTweet.png'
     },
     {
-      title: 'Contribute to Campaigns',
-      content: 'Tweet @XFundDex fund [AMOUNT] [TOKEN_CA] to contribute SOL from your wallet to any active campaign.',
-      Icon: IoCash,
-      iconColor: 'text-yellow-400'
+      title: 'Fund a Campaign',
+      content: 'Tweet @XFundDex fund AMOUNT TOKEN_ADDRESS to contribute SOL from your wallet. Funds are pooled to pay for DEXScreener updates.',
+      image: '/onboarding/FundTweet.png'
     },
     {
-      title: 'View & Manage',
-      content: 'Browse active campaigns to track progress. Export your private key anytime to import your wallet elsewhere.',
-      Icon: IoEye,
-      iconColor: 'text-purple-400'
+      title: 'Export Your Keys',
+      content: 'Export your private key anytime to import your wallet into Phantom, Solflare, or any Solana wallet.',
+      image: '/onboarding/ExportTweet.png'
     }
   ];
 
@@ -51,10 +52,10 @@ export default function OnboardingModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-xl w-full shadow-2xl">
+      <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
 
         {/* Step indicator */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-6">
           {steps.map((_, index) => (
             <div
               key={index}
@@ -68,16 +69,25 @@ export default function OnboardingModal({ isOpen, onClose }) {
         </div>
 
         {/* Content */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <currentStep.Icon className={`text-7xl ${currentStep.iconColor}`} />
+        <div className="mb-6">
+          {/* Screenshot */}
+          <div className="mb-6 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-950">
+            <img
+              src={currentStep.image}
+              alt={currentStep.title}
+              className="w-full h-auto"
+            />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">
-            {currentStep.title}
-          </h2>
-          <p className="text-neutral-300 text-base leading-relaxed max-w-md mx-auto">
-            {currentStep.content}
-          </p>
+
+          {/* Text */}
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-3">
+              {currentStep.title}
+            </h2>
+            <p className="text-neutral-300 text-base leading-relaxed">
+              {currentStep.content}
+            </p>
+          </div>
         </div>
 
         {/* Full guide link */}
