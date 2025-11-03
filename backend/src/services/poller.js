@@ -229,16 +229,18 @@ async function poll() {
   isPolling = true;
 
   try {
+    console.log(`[Poller] Checking for mentions... (last ID: ${lastProcessedId || 'none'})`);
+
     // Fetch mentions
     const mentions = await fetchMentions(lastProcessedId);
 
     if (mentions.length === 0) {
-      // No new mentions
+      console.log('[Poller] No new mentions found');
       isPolling = false;
       return;
     }
 
-    console.log(`Found ${mentions.length} new mentions`);
+    console.log(`[Poller] Found ${mentions.length} new mentions`);
 
     // Process each mention
     for (const tweet of mentions) {
@@ -251,7 +253,14 @@ async function poll() {
     }
 
   } catch (error) {
-    console.error('Polling error:', error.message);
+    console.error('[Poller] ERROR:', error.message);
+    if (error.response) {
+      console.error('[Poller] API Response:', JSON.stringify(error.response.data, null, 2));
+      console.error('[Poller] Status:', error.response.status);
+    }
+    if (error.stack) {
+      console.error('[Poller] Stack:', error.stack);
+    }
   } finally {
     isPolling = false;
   }
