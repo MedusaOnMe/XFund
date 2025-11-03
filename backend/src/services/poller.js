@@ -8,7 +8,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 
 /**
  * Twitter mention poller
- * Runs every 10 seconds to check for new mentions
+ * Runs every 5 minutes to check for new mentions
  */
 
 let lastProcessedId = null;
@@ -270,13 +270,13 @@ async function poll() {
  * Start polling loop
  */
 function startPoller() {
-  console.log('Starting Twitter mention poller (every 10 seconds)');
+  console.log('Starting Twitter mention poller (every 5 minutes)');
 
   // Initial poll
   poll();
 
   // Set interval
-  setInterval(poll, 10000); // 10 seconds
+  setInterval(poll, 300000); // 5 minutes
 }
 
 module.exports = {
