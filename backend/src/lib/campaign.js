@@ -280,12 +280,28 @@ async function getCampaignContributions(campaignId) {
 
 /**
  * Update campaign metadata
+ * Merges new metadata with existing to preserve token_name and token_symbol
  */
 async function updateCampaignMetadata(campaignId, metadata) {
   const db = getFirestore();
 
+  // Get existing campaign to preserve token info
+  const campaignDoc = await db.collection('campaigns').doc(campaignId).get();
+  if (!campaignDoc.exists) {
+    throw new Error('Campaign not found');
+  }
+
+  const existingMetadata = campaignDoc.data().metadata || {};
+
+  // Merge: new metadata can override everything EXCEPT we preserve token_name and token_symbol
+  const mergedMetadata = {
+    ...metadata,
+    token_name: existingMetadata.token_name || metadata.token_name,
+    token_symbol: existingMetadata.token_symbol || metadata.token_symbol
+  };
+
   await db.collection('campaigns').doc(campaignId).update({
-    metadata
+    metadata: mergedMetadata
   });
 
   console.log(`Updated metadata for campaign ${campaignId}`);
