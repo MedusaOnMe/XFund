@@ -2,14 +2,11 @@ import axios from 'axios';
 
 /**
  * API client for backend communication
- * In production: same server, use relative URLs
- * In dev: separate servers, use localhost:3001
+ * Uses relative URLs - Next.js rewrites proxy to backend
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? '' : 'http://localhost:3001');
-
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: '',
   headers: {
     'Content-Type': 'application/json'
   }
