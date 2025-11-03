@@ -9,7 +9,7 @@
 require('dotenv').config();
 const crypto = require('crypto');
 const { Keypair } = require('@solana/web3.js');
-const bs58 = require('bs58');
+const base58 = require('bs58').default;
 
 // ============ PASTE YOUR DATA HERE ============
 const ENCRYPTED_DATA = '2DvVX4bs8QEd2azQchrSYen1BSTcugeO5bN/bs/IFaBPVsWfD9mDqyt2WqOtJUsKU7/WSuKOZmE/cChr9D7TQNsyVNzEdk4ye4ZWl9tqF6kRyqC4tPZLepTAKO5TJeNS8W7EA2ElZyklhGq8U/eii1uy+rxqhqwcFB7cRC/cEiHDzNtB1lXhD//7rn1M7Z9Ni9eeHtdm6VifkgvlzfUESRtZwAYkej4GLmU9plJg1F5KQTwF9J+gaDPoC/R2ou0IC4t3mPCmTfBl/eLlNBKeifBi/QYkrnOwCKSM3v6XINvuet1qwUn+/xqAH+lfjAbzGtl7E8yB12/hmcDFr1kRRrbU/bFqNg==';
@@ -49,7 +49,7 @@ try {
   console.log('\n✅ Campaign Wallet Decrypted!\n');
   console.log('Campaign ID:', CAMPAIGN_ID);
   console.log('Public Key:', keypair.publicKey.toString());
-  console.log('\nPrivate Key (Base58):', bs58.encode(Buffer.from(secretKey)));
+  console.log('\nPrivate Key (Base58):', base58.encode(Buffer.from(secretKey)));
   console.log('Private Key (Base64):', Buffer.from(keypair.secretKey).toString('base64'));
   console.log('\n⚠️  Never share this key!\n');
 
