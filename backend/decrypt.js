@@ -11,8 +11,8 @@ const crypto = require('crypto');
 const { Keypair } = require('@solana/web3.js');
 
 // ============ PASTE YOUR DATA HERE ============
-const ENCRYPTED_DATA = 'TbZRVmdfLtvdjn3TOEfamEoHrJrRbav4JJB/YPWxwy+eL9fL3RaXrLwy/3dYS6rCFWOZt5pAASg/J29nsFDERlJVbKBH53BWX+6Q8g2pWbSinLBOgEUhqzmBDuqoVo0k4CYpVyoyiL1YIDFoDdIenKv984qYFN4xvta/0diePZCHPlUGbBuNYYc9R6EyKMOtEa68/cQprSmTf0mQcRZgjPxwffKihXx2byzRklG0bPLWTkZqDcf7YHFnusEqTzj+TNS71xr/7r5UIxMIe/TWnN/Hv1fAIVJ21f9eebkOsJhgh789bs2l6wsIoUuhUq/iQryauJddkJlnZDeDU6s=';
-const CAMPAIGN_ID = 'c0nkKx6HpeBcsOICXTFX';
+const ENCRYPTED_DATA = 'I7FontSeUdzHUq4iQdYdSQrd1ia+UDBBc8YSqxo5njj45+Fz21oIg58pq4fFD4LnJ7WkFiE0580ZKOg45gHKtR4lzI2bBM+l8OoZa7NPsVaom4ioLlqox31ayYvFTSd9ZQxHg1HVAlMpUtOfN/8/fq8F60XKLWD/uHE9rL3h3CN36FmSjmHS+3fWWbjvyPc3PbZC4HQuAe/dGW24/5aZFgJh6OIx9xrH4p2sA4qFpy0yRoeRR0oj+AjXWRlLi4DMf2107uUO2TxO/ZP0aZXEQSoUwc2reQjMt9imzCPJ5KJAwqz01VgaA5hEgJTA/hyd8SuiogocMm00SN8fgCOZOnhQ0aKEiT75';
+const CAMPAIGN_ID = 'gDS4lqEAbpZhDbMmPLhk';
 // ==============================================
 
 const ALGORITHM = 'aes-256-gcm';
