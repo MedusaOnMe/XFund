@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { QRCodeSVG } from 'qrcode.react';
 import { getWallet, getUserCampaigns } from '../lib/api';
 import ExportModal from '../components/ExportModal';
+import OnboardingModal from '../components/OnboardingModal';
 import Navbar from '../components/Navbar';
 
 /**
@@ -17,6 +18,7 @@ export default function Wallet() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [copied, setCopied] = useState(false);
   const [myCampaigns, setMyCampaigns] = useState([]);
 
@@ -34,6 +36,13 @@ export default function Wallet() {
     setUserId(storedUserId);
     setXHandle(storedHandle);
     setWalletPub(storedWallet);
+
+    // Check if this is a new user (first login)
+    const isNewUser = sessionStorage.getItem('is_new_user');
+    if (isNewUser === 'true') {
+      setShowOnboarding(true);
+      sessionStorage.removeItem('is_new_user'); // Clear flag after showing once
+    }
 
     loadWallet(storedUserId);
   }, [router]);
@@ -177,6 +186,12 @@ export default function Wallet() {
           onClose={() => setShowExportModal(false)}
         />
       )}
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </>
   );
 }
