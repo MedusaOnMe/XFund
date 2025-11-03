@@ -65,11 +65,11 @@ async function verifyAndExport(verificationCode, tweetAuthor) {
     return { success: false, error: 'Verification code expired' };
   }
 
-  // Verify tweet author matches handle
-  const normalizedAuthor = tweetAuthor.startsWith('@') ? tweetAuthor : `@${tweetAuthor}`;
-  const normalizedHandle = exportRequest.handle.startsWith('@') ? exportRequest.handle : `@${exportRequest.handle}`;
+  // Verify tweet author matches handle (normalized: no @, lowercase)
+  const normalizedAuthor = tweetAuthor.toLowerCase().replace(/^@/, '');
+  const normalizedHandle = exportRequest.handle.toLowerCase().replace(/^@/, '');
 
-  if (normalizedAuthor.toLowerCase() !== normalizedHandle.toLowerCase()) {
+  if (normalizedAuthor !== normalizedHandle) {
     console.log(`Author mismatch: ${normalizedAuthor} !== ${normalizedHandle}`);
     return { success: false, error: 'Tweet author does not match' };
   }

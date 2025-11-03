@@ -11,10 +11,12 @@ Fund Solana tokens via tweets. No smart contracts, no complexity. Just tweet com
 - **Tweet to Fund**: Create campaigns and contribute SOL via Twitter commands
 - **Custodial Wallets**: Auto-generated wallets for each user
 - **Two Campaign Types**:
-  - **DEX**: 24-hour time limit
+  - **DEX**: 24-hour time limit, $300 USD goal (dynamic SOL conversion)
   - **BOOSTS**: Unlimited duration
+- **Dynamic Pricing**: SOL goals calculated in real-time based on Jupiter price API
 - **Secure Key Export**: Tweet-verified private key export with 30s auto-wipe
 - **Real-time Updates**: Live campaign tracking and contribution monitoring
+- **Telegram Notifications**: Automatic alerts for campaign events with USD values
 
 ---
 
@@ -25,6 +27,7 @@ Fund Solana tokens via tweets. No smart contracts, no complexity. Just tweet com
 - **Firebase Admin SDK**: Database and authentication
 - **Solana Web3.js**: Blockchain operations via Helius RPC (mainnet)
 - **RapidAPI Twitter154**: Tweet mention monitoring
+- **Jupiter Price API**: Real-time SOL/USD price feeds
 - **AES-256-GCM**: Private key encryption
 
 ### Frontend
@@ -81,7 +84,12 @@ FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.c
 FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
 RAPIDAPI_KEY=your_rapidapi_key
 RAPIDAPI_HOST=twitter154.p.rapidapi.com
-TWITTER_HANDLE=crowdfund
+TWITTER_HANDLE=XFundDex
+
+# Optional: Telegram notifications
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
+FRONTEND_URL=https://xfunder.app
 ```
 
 **Frontend** (`frontend/.env.local`):
@@ -261,7 +269,12 @@ XFunder/
 │   │   │   ├── twitter.js    # RapidAPI client
 │   │   │   ├── parser.js     # Tweet parsing
 │   │   │   ├── campaign.js   # Campaign logic
-│   │   │   └── export.js     # Key export logic
+│   │   │   ├── export.js     # Key export logic
+│   │   │   ├── telegram.js   # Telegram notifications
+│   │   │   ├── jupiter.js    # SOL price API (Jupiter)
+│   │   │   ├── update.js     # Campaign update verification
+│   │   │   ├── dexscreener.js # Token metadata fetching
+│   │   │   └── storage.js    # Image upload & storage
 │   │   ├── routes/
 │   │   │   └── api.js        # API endpoints
 │   │   ├── services/
@@ -306,6 +319,41 @@ XFunder/
 | GET | `/api/campaigns` | List all campaigns (with filters) |
 | GET | `/api/campaign/:id` | Get campaign details + contributions |
 | GET | `/health` | Health check |
+
+---
+
+## 📱 Telegram Notifications
+
+XFunder supports optional Telegram notifications for real-time campaign updates.
+
+### Setup
+
+1. **Create a Telegram Bot**:
+   - Message [@BotFather](https://t.me/BotFather) on Telegram
+   - Send `/newbot` and follow instructions
+   - Save the bot token
+
+2. **Get Your Chat ID**:
+   - Start a chat with your bot
+   - Send any message to it
+   - Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - Find your chat ID in the response
+
+3. **Configure Environment Variables**:
+```bash
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+FRONTEND_URL=https://xfunder.app  # For links in notifications
+```
+
+### Notification Types
+
+- **Campaign Created**: New campaign with token info and creator
+- **Donation Received**: Contribution amount, donor, and progress
+- **Campaign Fully Funded**: Special alert when goal is reached
+- **Campaign Ended**: Final status when time expires
+
+If Telegram credentials are not configured, the system will skip notifications and log a message.
 
 ---
 
@@ -379,8 +427,22 @@ XFunder/
   campaign_wallet_priv_enc: "encrypted_key...",
   start_ts: timestamp,
   end_ts: timestamp | null,
-  status: "active" | "ended",
-  total_raised: number
+  status: "active" | "funded" | "ended",
+  goal_amount: number | null,           // SOL amount (dynamic based on USD price)
+  goal_usd: number | null,              // USD target (e.g., 300 for DEX)
+  sol_price_at_creation: number | null, // SOL price when campaign created
+  total_raised: number,
+  funded_at: timestamp | null,
+  metadata: {
+    token_name: string,
+    token_symbol: string,
+    description: string,
+    main_image_url: string,
+    header_image_url: string,
+    twitter_url: string,
+    telegram_url: string,
+    website_url: string
+  }
 }
 ```
 

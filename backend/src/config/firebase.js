@@ -19,17 +19,18 @@ function initializeFirebase() {
     throw new Error('Firebase credentials not configured. Check your .env file.');
   }
 
-  // Initialize Firebase Admin (Firestore ONLY - no Realtime DB!)
+  // Initialize Firebase Admin (Firestore + Storage)
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId,
       privateKey: privateKey.replace(/\\n/g, '\n'), // Handle escaped newlines
       clientEmail
-    })
+    }),
+    storageBucket: 'scream-5cef9.firebasestorage.app'
   });
 
   initialized = true;
-  console.log('Firebase Admin SDK initialized (Firestore only)');
+  console.log('Firebase Admin SDK initialized (Firestore + Storage)');
 }
 
 module.exports = {

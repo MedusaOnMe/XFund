@@ -1,7 +1,7 @@
 {
-  "name": "xfunder-frontend",
+  "name": "xfunddex-frontend",
   "version": "1.0.0",
-  "description": "Twitter-controlled Solana crowdfunding frontend",
+  "description": "XFundDex frontend - Twitter-controlled Solana crowdfunding",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

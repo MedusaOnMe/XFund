@@ -5,9 +5,10 @@
 
 // Tweet command patterns
 const PATTERNS = {
-  CREATE: /@XFundDex\s+create\s+(dex|boosts)\s+([1-9A-HJ-NP-Za-km-z]{32,44})/i,
-  CONTRIBUTE: /@XFundDex\s+fund\s+(dex|boosts)\s+([0-9.]+)\s+([1-9A-HJ-NP-Za-km-z]{32,44})/i,
-  EXPORT: /@XFundDex\s+export\s+([0-9]{6})/i
+  CREATE: /@XFundDex\s+create\s+([1-9A-HJ-NP-Za-km-z]{32,44})/i,
+  CONTRIBUTE: /@XFundDex\s+fund\s+([0-9.]+)\s+([1-9A-HJ-NP-Za-km-z]{32,44})/i,
+  EXPORT: /@XFundDex\s+export\s+([0-9]{6})/i,
+  UPDATE: /@XFundDex\s+update\s+([0-9]{6})/i
 };
 
 /**
@@ -25,8 +26,8 @@ function parseTweet(tweetText) {
     return {
       type: 'CREATE',
       data: {
-        campaignType: createMatch[1].toLowerCase(), // dex or boosts
-        tokenCA: createMatch[2]
+        campaignType: 'dex', // Default to dex
+        tokenCA: createMatch[1]
       }
     };
   }
@@ -34,7 +35,7 @@ function parseTweet(tweetText) {
   // Try CONTRIBUTE command
   const contributeMatch = tweetText.match(PATTERNS.CONTRIBUTE);
   if (contributeMatch) {
-    const amount = parseFloat(contributeMatch[2]);
+    const amount = parseFloat(contributeMatch[1]);
 
     // Validate amount
     if (isNaN(amount) || amount <= 0) {
@@ -44,8 +45,8 @@ function parseTweet(tweetText) {
     return {
       type: 'CONTRIBUTE',
       data: {
-        campaignType: contributeMatch[1].toLowerCase(),
-        tokenCA: contributeMatch[3],
+        campaignType: 'dex', // Default to dex
+        tokenCA: contributeMatch[2],
         amount
       }
     };
@@ -58,6 +59,17 @@ function parseTweet(tweetText) {
       type: 'EXPORT',
       data: {
         verificationCode: exportMatch[1]
+      }
+    };
+  }
+
+  // Try UPDATE command
+  const updateMatch = tweetText.match(PATTERNS.UPDATE);
+  if (updateMatch) {
+    return {
+      type: 'UPDATE',
+      data: {
+        verificationCode: updateMatch[1]
       }
     };
   }

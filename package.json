@@ -1,7 +1,7 @@
 {
-  "name": "xfunder",
+  "name": "xfunddex",
   "version": "1.0.0",
-  "description": "Twitter-controlled Solana crowdfunding - ALL IN ONE SERVICE",
+  "description": "XFundDex - Twitter-controlled Solana crowdfunding for DEXScreener updates",
   "scripts": {
     "install": "cd backend && npm install && cd ../frontend && npm install",
     "build": "cd frontend && npm run build && cd ..",

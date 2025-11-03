@@ -1,6 +1,9 @@
 const { createWallet, sendSOL, getBalance } = require('./solana');
 const { encrypt, decrypt } = require('./encrypt');
 const { getFirestore } = require('firebase-admin/firestore');
+const { fetchTokenMetadata, enrichMetadata } = require('./dexscreener');
+const { classifyAndUploadTweetImages } = require('./storage');
+const { calculateSolAmount, solToUsd } = require('./jupiter');
 
 /**
  * Campaign operations
@@ -11,7 +14,7 @@ const { getFirestore } = require('firebase-admin/firestore');
  * Create a new campaign
  * Returns: campaign object
  */
-async function createCampaign(campaignType, tokenCA, creatorUserId) {
+async function createCampaign(campaignType, tokenCA, creatorUserId, tweet = null) {
   const db = getFirestore();
 
   // Generate wallet for campaign
@@ -25,6 +28,58 @@ async function createCampaign(campaignType, tokenCA, creatorUserId) {
   const now = Date.now();
   const endTs = campaignType === 'dex' ? now + (24 * 60 * 60 * 1000) : null;
 
+  // Fetch token metadata from on-chain data (pump.fun API)
+  const tokenData = await fetchTokenMetadata(tokenCA);
+
+  // Extract images from tweet and classify by aspect ratio
+  let tweetImages = {
+    main_image_url: null,
+    header_image_url: null
+  };
+
+  if (tweet && tweet.media && tweet.media.length > 0) {
+    // Extract photo URLs
+    const photoUrls = tweet.media
+      .filter(m => m.type === 'photo' || m.media_url_https || m.url)
+      .map(m => m.media_url_https || m.url)
+      .filter(url => url);
+
+    if (photoUrls.length > 0) {
+      console.log(`Extracting ${photoUrls.length} images from tweet`);
+      tweetImages = await classifyAndUploadTweetImages(photoUrls);
+    }
+  }
+
+  // Create base metadata structure with tweet images
+  const baseMetadata = {
+    main_image_url: tweetImages.main_image_url,
+    header_image_url: tweetImages.header_image_url,
+    description: null,
+    twitter_url: null,
+    telegram_url: null,
+    website_url: null,
+    token_name: null,
+    token_symbol: null
+  };
+
+  // Enrich with on-chain token data (but don't override tweet images)
+  const metadata = enrichMetadata(baseMetadata, tokenData);
+
+  // Set goal amount based on campaign type
+  // DEX: $300 USD (cost for DEXScreener enhanced token info) - calculated dynamically
+  // BOOSTS: No fixed goal (flexible)
+  let goalAmount = null;
+  let goalUsd = null;
+  let solPriceAtCreation = null;
+
+  if (campaignType === 'dex') {
+    const DEX_COST_USD = 300;
+    const priceData = await calculateSolAmount(DEX_COST_USD);
+    goalAmount = priceData.solAmount;
+    goalUsd = DEX_COST_USD;
+    solPriceAtCreation = priceData.solPrice;
+  }
+
   const campaign = {
     id: campaignId,
     type: campaignType,
@@ -35,8 +90,12 @@ async function createCampaign(campaignType, tokenCA, creatorUserId) {
     start_ts: now,
     end_ts: endTs,
     status: 'active',
+    goal_amount: goalAmount,
+    goal_usd: goalUsd,
+    sol_price_at_creation: solPriceAtCreation,
     total_raised: 0,
-    created_at: now
+    created_at: now,
+    metadata
   };
 
   // Save to Firestore
@@ -111,16 +170,37 @@ async function contribute(campaignId, userId, amount) {
 
   await db.collection('contributions').doc(contributionId).set(contribution);
 
-  // Update campaign total
-  await db.collection('campaigns').doc(campaignId).update({
-    total_raised: campaign.total_raised + amount
-  });
+  // Get ACTUAL campaign wallet balance after transaction
+  const actualBalance = await getBalance(campaign.campaign_wallet_pub);
+  console.log(`Campaign wallet ${campaign.campaign_wallet_pub} actual balance: ${actualBalance} SOL`);
+
+  // Update campaign total with actual balance
+  const updateData = {
+    total_raised: actualBalance
+  };
+
+  // Check if campaign is now fully funded based on USD value
+  // Fetch current SOL price and calculate USD value of wallet
+  if (campaign.goal_usd && campaign.status === 'active') {
+    const walletUsdValue = await solToUsd(actualBalance);
+    console.log(`Campaign wallet USD value: $${walletUsdValue.usdValue} (goal: $${campaign.goal_usd})`);
+
+    if (walletUsdValue.usdValue >= campaign.goal_usd) {
+      updateData.status = 'funded';
+      updateData.funded_at = Date.now();
+      console.log(`Campaign ${campaignId} is now FULLY FUNDED! Reached $${walletUsdValue.usdValue} USD (goal: $${campaign.goal_usd})`);
+    }
+  }
+
+  await db.collection('campaigns').doc(campaignId).update(updateData);
 
   console.log(`Contribution: ${amount} SOL to campaign ${campaignId} (tx: ${txSignature})`);
 
   return {
     contribution,
-    txSignature
+    txSignature,
+    newTotal: actualBalance,
+    isFullyFunded: updateData.status === 'funded'
   };
 }
 
@@ -198,11 +278,26 @@ async function getCampaignContributions(campaignId) {
   return snapshot.docs.map(doc => doc.data());
 }
 
+/**
+ * Update campaign metadata
+ */
+async function updateCampaignMetadata(campaignId, metadata) {
+  const db = getFirestore();
+
+  await db.collection('campaigns').doc(campaignId).update({
+    metadata
+  });
+
+  console.log(`Updated metadata for campaign ${campaignId}`);
+  return true;
+}
+
 module.exports = {
   createCampaign,
   contribute,
   findCampaign,
   getCampaign,
   listCampaigns,
-  getCampaignContributions
+  getCampaignContributions,
+  updateCampaignMetadata
 };

@@ -1,10 +1,21 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const { getFirestore } = require('firebase-admin/firestore');
 const { createWallet, getBalance, sendSOL, isValidAddress } = require('../lib/solana');
 const { encrypt } = require('../lib/encrypt');
 const { createExportRequest } = require('../lib/export');
-const { getCampaign, listCampaigns, getCampaignContributions } = require('../lib/campaign');
+const { createUpdateRequest } = require('../lib/update');
+const { getCampaign, listCampaigns, getCampaignContributions, updateCampaignMetadata } = require('../lib/campaign');
+const { uploadImage, isValidImageType, isValidFileSize } = require('../lib/storage');
+
+// Configure multer for memory storage (we'll upload to Firebase)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB max
+  }
+});
 
 /**
  * API Routes
@@ -20,12 +31,21 @@ router.post('/login', async (req, res) => {
   try {
     const { x_handle } = req.body;
 
-    if (!x_handle) {
-      return res.status(400).json({ error: 'x_handle is required' });
+    if (!x_handle || typeof x_handle !== 'string') {
+      return res.status(400).json({ error: 'x_handle is required and must be a string' });
     }
 
-    // Normalize handle
-    const normalizedHandle = x_handle.startsWith('@') ? x_handle : `@${x_handle}`;
+    // Normalize handle: ALWAYS strip @ and lowercase to prevent duplicate accounts
+    const normalizedHandle = x_handle.toLowerCase().replace(/^@/, '').trim();
+
+    // Validate format and length
+    if (normalizedHandle.length < 1 || normalizedHandle.length > 15) {
+      return res.status(400).json({ error: 'X handle must be between 1 and 15 characters' });
+    }
+
+    if (!/^[a-z0-9_]+$/.test(normalizedHandle)) {
+      return res.status(400).json({ error: 'X handle can only contain letters, numbers, and underscores' });
+    }
 
     const db = getFirestore();
 
@@ -54,7 +74,7 @@ router.post('/login', async (req, res) => {
     // Encrypt private key
     const encryptedPrivKey = encrypt(JSON.stringify(wallet.secretKey), userId);
 
-    // Save user
+    // Save user (without @ prefix)
     const newUser = {
       x_handle: normalizedHandle,
       user_wallet_pub: wallet.publicKey,
@@ -188,6 +208,176 @@ router.get('/export-status/:secretPath', async (req, res) => {
 });
 
 /**
+ * POST /api/update-request
+ * Request campaign metadata update
+ * Body: { campaign_id, x_handle }
+ * Returns: { verification_code, secret_path }
+ */
+router.post('/update-request', async (req, res) => {
+  try {
+    const { campaign_id, x_handle } = req.body;
+
+    if (!campaign_id || !x_handle) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const db = getFirestore();
+
+    // Verify campaign exists
+    const campaignDoc = await db.collection('campaigns').doc(campaign_id).get();
+    if (!campaignDoc.exists) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    // Create update request
+    const { verificationCode, secretPath } = await createUpdateRequest(campaign_id, x_handle);
+
+    return res.json({
+      verification_code: verificationCode,
+      secret_path: secretPath
+    });
+
+  } catch (error) {
+    console.error('Update request error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/update-status/:secretPath
+ * Check if update request is verified (frontend polls this every 2s)
+ * Returns: { verified: boolean, campaign_id?: string }
+ */
+router.get('/update-status/:secretPath', async (req, res) => {
+  try {
+    const { secretPath } = req.params;
+    const db = getFirestore();
+
+    // Check if update request exists
+    const updateDoc = await db.collection('update_requests').doc(secretPath).get();
+
+    if (!updateDoc.exists) {
+      return res.json({ verified: false });
+    }
+
+    const updateData = updateDoc.data();
+
+    // Check if expired
+    if (Date.now() > updateData.expires_at) {
+      await db.collection('update_requests').doc(secretPath).delete();
+      return res.json({ verified: false });
+    }
+
+    // Return verification status
+    return res.json({
+      verified: updateData.verified,
+      campaign_id: updateData.verified ? updateData.campaign_id : undefined
+    });
+
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/update-metadata
+ * Update campaign metadata after verification
+ * Body: { secret_path, metadata: { main_image_url, header_image_url, description, twitter_url, telegram_url, website_url } }
+ * Returns: { success: boolean }
+ */
+router.post('/update-metadata', async (req, res) => {
+  try {
+    const { secret_path, metadata } = req.body;
+
+    if (!secret_path || !metadata) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const db = getFirestore();
+
+    // Get update request
+    const updateDoc = await db.collection('update_requests').doc(secret_path).get();
+
+    if (!updateDoc.exists) {
+      return res.status(404).json({ error: 'Update request not found' });
+    }
+
+    const updateData = updateDoc.data();
+
+    // Check if verified
+    if (!updateData.verified) {
+      return res.status(403).json({ error: 'Update request not verified' });
+    }
+
+    // Check if expired
+    if (Date.now() > updateData.expires_at) {
+      await db.collection('update_requests').doc(secret_path).delete();
+      return res.status(403).json({ error: 'Update request expired' });
+    }
+
+    // Update campaign metadata
+    await updateCampaignMetadata(updateData.campaign_id, metadata);
+
+    // Delete update request (one-time use)
+    await db.collection('update_requests').doc(secret_path).delete();
+
+    return res.json({
+      success: true
+    });
+
+  } catch (error) {
+    console.error('Update metadata error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/upload-image
+ * Upload campaign image (main or header)
+ * Body: multipart/form-data with 'image' file and 'type' field ('main' or 'header')
+ * Returns: { image_url: string }
+ */
+router.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    const imageType = req.body.type; // 'main' or 'header'
+
+    if (!imageType || !['main', 'header'].includes(imageType)) {
+      return res.status(400).json({ error: 'Invalid image type. Must be "main" or "header"' });
+    }
+
+    // Validate content type
+    if (!isValidImageType(req.file.mimetype)) {
+      return res.status(400).json({ error: 'Invalid file type. Must be JPEG, PNG, GIF, or WebP' });
+    }
+
+    // Validate file size
+    if (!isValidFileSize(req.file.buffer)) {
+      return res.status(400).json({ error: 'File too large. Max size is 5MB' });
+    }
+
+    // Upload to Firebase Storage
+    const imageUrl = await uploadImage(
+      req.file.buffer,
+      req.file.mimetype,
+      `campaigns/${imageType}`
+    );
+
+    return res.json({
+      image_url: imageUrl
+    });
+
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+/**
  * GET /api/campaigns
  * List campaigns with optional filters
  * Query params: type, status, limit
@@ -199,12 +389,21 @@ router.get('/campaigns', async (req, res) => {
     const filters = {};
     if (type) filters.type = type;
     if (status) filters.status = status;
-    if (limit) filters.limit = parseInt(limit);
+
+    // Add pagination with default limit of 20, max 100
+    if (limit) {
+      const parsedLimit = parseInt(limit);
+      filters.limit = Math.min(Math.max(parsedLimit, 1), 100); // Between 1 and 100
+    } else {
+      filters.limit = 20; // Default 20 campaigns per request
+    }
 
     const campaigns = await listCampaigns(filters);
 
     return res.json({
-      campaigns
+      campaigns,
+      count: campaigns.length,
+      limit: filters.limit
     });
 
   } catch (error) {

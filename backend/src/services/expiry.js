@@ -28,12 +28,16 @@ async function expireDEXCampaigns() {
 
     console.log(`Expiring ${expiredCampaigns.size} DEX campaigns`);
 
-    // Mark each as ended
+    // Mark each as failed (expired without reaching goal)
     const batch = db.batch();
 
     for (const doc of expiredCampaigns.docs) {
+      const campaign = doc.data();
+
+      // Check if it reached its goal (should have been marked 'funded' already)
+      // If still 'active' and expired, it failed to reach goal
       batch.update(doc.ref, {
-        status: 'ended',
+        status: 'failed',
         ended_at: now
       });
     }

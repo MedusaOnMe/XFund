@@ -52,6 +52,14 @@ export async function getCampaigns(filters = {}) {
 }
 
 /**
+ * Get campaigns created by a specific user
+ */
+export async function getUserCampaigns(userId) {
+  const campaigns = await getCampaigns({ status: 'active' });
+  return campaigns.filter(c => c.creator_user_id === userId);
+}
+
+/**
  * Get campaign details
  */
 export async function getCampaign(campaignId) {
@@ -64,6 +72,52 @@ export async function getCampaign(campaignId) {
  */
 export async function checkExportStatus(secretPath) {
   const response = await api.get(`/api/export-status/${secretPath}`);
+  return response.data;
+}
+
+/**
+ * Request campaign metadata update
+ */
+export async function requestUpdate(campaignId, xHandle) {
+  const response = await api.post('/api/update-request', {
+    campaign_id: campaignId,
+    x_handle: xHandle
+  });
+  return response.data;
+}
+
+/**
+ * Check update status (poll this every 2 seconds)
+ */
+export async function checkUpdateStatus(secretPath) {
+  const response = await api.get(`/api/update-status/${secretPath}`);
+  return response.data;
+}
+
+/**
+ * Update campaign metadata
+ */
+export async function updateMetadata(secretPath, metadata) {
+  const response = await api.post('/api/update-metadata', {
+    secret_path: secretPath,
+    metadata
+  });
+  return response.data;
+}
+
+/**
+ * Upload campaign image
+ */
+export async function uploadImage(imageFile, imageType) {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  formData.append('type', imageType);
+
+  const response = await api.post('/api/upload-image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
   return response.data;
 }
 

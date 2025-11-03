@@ -2,6 +2,8 @@ const { fetchMentions } = require('../lib/twitter');
 const { parseTweet } = require('../lib/parser');
 const { createCampaign, findCampaign, contribute } = require('../lib/campaign');
 const { verifyAndExport } = require('../lib/export');
+const { verifyUpdateRequest } = require('../lib/update');
+const { notifyCampaignCreated, notifyDonation } = require('../lib/telegram');
 const { getFirestore } = require('firebase-admin/firestore');
 
 /**
@@ -34,6 +36,21 @@ async function processTweet(tweet) {
     return;
   }
 
+  // CRITICAL: Mark as processed IMMEDIATELY to prevent duplicate processing
+  // This must happen BEFORE any processing to prevent race conditions
+  try {
+    await db.collection('processed_tweets').doc(tweet.id).set({
+      tweet_id: tweet.id,
+      command_type: command.type,
+      processed_at: Date.now(),
+      status: 'processing'
+    });
+  } catch (error) {
+    console.error(`Failed to mark tweet ${tweet.id} as processed:`, error.message);
+    return; // Don't process if we can't mark it
+  }
+
+  // Now process the command
   try {
     switch (command.type) {
       case 'CREATE':
@@ -48,19 +65,28 @@ async function processTweet(tweet) {
         await handleExportCommand(tweet, command.data);
         break;
 
+      case 'UPDATE':
+        await handleUpdateCommand(tweet, command.data);
+        break;
+
       default:
         console.log(`Unknown command type: ${command.type}`);
     }
 
-    // Mark as processed
-    await db.collection('processed_tweets').doc(tweet.id).set({
-      tweet_id: tweet.id,
-      command_type: command.type,
-      processed_at: Date.now()
+    // Update status to completed
+    await db.collection('processed_tweets').doc(tweet.id).update({
+      status: 'completed',
+      completed_at: Date.now()
     });
 
   } catch (error) {
     console.error(`Error processing tweet ${tweet.id}:`, error.message);
+    // Update status to failed but DON'T remove the processed marker
+    await db.collection('processed_tweets').doc(tweet.id).update({
+      status: 'failed',
+      error: error.message,
+      failed_at: Date.now()
+    });
   }
 }
 
@@ -71,8 +97,8 @@ async function handleCreateCommand(tweet, data) {
   const { campaignType, tokenCA } = data;
   const db = getFirestore();
 
-  // Find user by Twitter handle
-  const username = `@${tweet.author.username}`;
+  // Find user by Twitter handle (normalized: no @, lowercase)
+  const username = tweet.author.username.toLowerCase();
   const usersSnapshot = await db.collection('users')
     .where('x_handle', '==', username)
     .limit(1)
@@ -92,9 +118,18 @@ async function handleCreateCommand(tweet, data) {
     return;
   }
 
-  // Create campaign
-  await createCampaign(campaignType, tokenCA, userId);
+  // Create campaign with tweet (to extract images)
+  const campaign = await createCampaign(campaignType, tokenCA, userId, tweet);
   console.log(`Created ${campaignType} campaign for ${tokenCA} by ${username}`);
+
+  // Get user data for notification
+  const userDoc = usersSnapshot.docs[0].data();
+
+  // Send Telegram notification
+  await notifyCampaignCreated({
+    ...campaign,
+    creator_x_handle: userDoc.x_handle
+  });
 }
 
 /**
@@ -104,8 +139,8 @@ async function handleContributeCommand(tweet, data) {
   const { campaignType, tokenCA, amount } = data;
   const db = getFirestore();
 
-  // Find user by Twitter handle
-  const username = `@${tweet.author.username}`;
+  // Find user by Twitter handle (normalized: no @, lowercase)
+  const username = tweet.author.username.toLowerCase();
   const usersSnapshot = await db.collection('users')
     .where('x_handle', '==', username)
     .limit(1)
@@ -117,6 +152,7 @@ async function handleContributeCommand(tweet, data) {
   }
 
   const userId = usersSnapshot.docs[0].id;
+  const userDoc = usersSnapshot.docs[0].data();
 
   // Find campaign
   const campaign = await findCampaign(campaignType, tokenCA);
@@ -126,8 +162,28 @@ async function handleContributeCommand(tweet, data) {
   }
 
   // Contribute
-  await contribute(campaign.id, userId, amount);
+  const result = await contribute(campaign.id, userId, amount);
   console.log(`${username} contributed ${amount} SOL to campaign ${campaign.id}`);
+
+  // Debug: Log campaign metadata
+  console.log('Campaign metadata for donation notification:', {
+    has_metadata: !!campaign.metadata,
+    token_name: campaign.metadata?.token_name,
+    token_symbol: campaign.metadata?.token_symbol
+  });
+
+  // Send Telegram notification
+  await notifyDonation(
+    {
+      ...campaign,
+      total_raised: result.newTotal,
+      goal_amount: campaign.goal_amount
+    },
+    {
+      amount,
+      donor_x_handle: userDoc.x_handle
+    }
+  );
 }
 
 /**
@@ -143,6 +199,22 @@ async function handleExportCommand(tweet, data) {
     console.log(`Export verified for @${tweet.author.username}`);
   } else {
     console.log(`Export verification failed: ${result.error}`);
+  }
+}
+
+/**
+ * Handle UPDATE command
+ */
+async function handleUpdateCommand(tweet, data) {
+  const { verificationCode } = data;
+
+  // Verify update request
+  const result = await verifyUpdateRequest(verificationCode, tweet.author.username);
+
+  if (result.success) {
+    console.log(`Update request verified for campaign ${result.campaignId} by @${tweet.author.username}`);
+  } else {
+    console.log(`Update verification failed: ${result.error}`);
   }
 }
 

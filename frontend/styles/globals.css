@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 body {
-  @apply bg-[#0a0a0a] text-neutral-200 min-h-screen;
+  @apply bg-[#0a0a0a] text-neutral-200;
   position: relative;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* Video background */
@@ -22,7 +25,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 .video-background::after {
@@ -32,7 +35,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.3), rgba(10, 10, 10, 0.7));
+  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.5), rgba(10, 10, 10, 0.8));
   pointer-events: none;
 }
 

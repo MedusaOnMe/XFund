@@ -107,5 +107,6 @@ module.exports = {
   createWallet,
   getBalance,
   sendSOL,
-  isValidAddress
+  isValidAddress,
+  getConnection
 };

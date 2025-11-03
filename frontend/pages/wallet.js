@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { QRCodeSVG } from 'qrcode.react';
-import { getWallet } from '../lib/api';
+import { getWallet, getUserCampaigns } from '../lib/api';
 import ExportModal from '../components/ExportModal';
 import Navbar from '../components/Navbar';
 
@@ -18,6 +18,7 @@ export default function Wallet() {
   const [loading, setLoading] = useState(true);
   const [showExportModal, setShowExportModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [myCampaigns, setMyCampaigns] = useState([]);
 
   // Load user from session
   useEffect(() => {
@@ -42,6 +43,11 @@ export default function Wallet() {
       const data = await getWallet(uid);
       setWalletPub(data.wallet_pub);
       setBalance(data.balance);
+
+      // Load user's campaigns
+      const campaigns = await getUserCampaigns(uid);
+      setMyCampaigns(campaigns);
+
       setLoading(false);
     } catch (err) {
       console.error('Load wallet error:', err);
@@ -66,45 +72,89 @@ export default function Wallet() {
   return (
     <>
       <Head>
-        <title>Wallet - XFunder</title>
+        <title>Wallet - XFundDex</title>
       </Head>
 
       <Navbar />
 
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
         <div className="container-custom py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-1">Wallet</h1>
-            <p className="text-neutral-400">{xHandle}</p>
+            <a
+              href={`https://x.com/${xHandle.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              {xHandle.startsWith('@') ? xHandle : `@${xHandle}`}
+            </a>
           </div>
 
-          {/* Balance */}
-          <div className="card mb-8">
-            <p className="text-sm text-neutral-400 mb-1">Balance</p>
-            <p className="text-4xl font-bold text-white">{balance.toFixed(4)} SOL</p>
-          </div>
-
-          {/* Deposit */}
-          <div className="card max-w-md">
-            <h2 className="text-lg font-bold mb-4 text-white">Deposit</h2>
-
-            <div className="bg-neutral-950 p-3 rounded mb-4 flex justify-center border border-neutral-800">
-              <QRCodeSVG value={walletPub} size={150} bgColor="#0a0a0a" fgColor="#ffffff" />
+          {/* Balance & Deposit - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Balance */}
+            <div className="card h-full flex flex-col justify-center text-center">
+              <p className="text-sm text-neutral-400 mb-2">Balance</p>
+              <p className="text-5xl font-bold text-white">{balance.toFixed(4)} <span className="text-2xl text-neutral-400">SOL</span></p>
             </div>
 
-            <div className="bg-neutral-950 rounded p-3 mb-4 border border-neutral-800">
-              <p className="text-xs font-mono break-all text-neutral-300">
-                {walletPub}
-              </p>
-            </div>
+            {/* Deposit */}
+            <div className="card">
+              <h2 className="text-lg font-bold mb-4 text-white">Deposit SOL</h2>
 
-            <button onClick={copyAddress} className="btn btn-secondary w-full text-sm">
-              {copied ? 'Copied' : 'Copy Address'}
-            </button>
+              <div className="bg-neutral-950 p-4 rounded-lg mb-4 flex justify-center border border-neutral-800">
+                <QRCodeSVG value={walletPub} size={160} bgColor="#0a0a0a" fgColor="#ffffff" />
+              </div>
+
+              <div className="bg-neutral-950 rounded-lg p-3 mb-4 border border-neutral-800">
+                <p className="text-xs font-mono break-all text-neutral-300">
+                  {walletPub}
+                </p>
+              </div>
+
+              <button onClick={copyAddress} className="btn btn-secondary w-full text-sm">
+                {copied ? 'Copied ✓' : 'Copy Address'}
+              </button>
+            </div>
           </div>
+
+          {/* My Campaigns */}
+          {myCampaigns.length > 0 && (
+            <div className="card">
+              <h2 className="text-lg font-bold text-white mb-4">My Campaigns</h2>
+              <div className="space-y-3">
+                {myCampaigns.map((campaign) => (
+                  <div key={campaign.id} className="bg-neutral-950 border border-neutral-800 rounded p-4 hover:border-neutral-700 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`badge ${campaign.type === 'dex' ? 'badge-primary' : 'badge-warning'}`}>
+                            {campaign.type.toUpperCase()}
+                          </span>
+                          <span className="text-xs text-neutral-500">
+                            {campaign.total_raised.toFixed(4)} SOL raised
+                          </span>
+                        </div>
+                        <p className="text-xs font-mono text-neutral-400 break-all">
+                          {campaign.token_ca}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={`/campaign/${campaign.id}`}
+                      className="btn btn-secondary text-xs w-full"
+                    >
+                      View & Update
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Export */}
-          <div className="card border border-red-600/30 mt-6">
+          <div className="card border border-red-600/30 mt-8">
             <h2 className="text-lg font-bold text-red-400 mb-2">Export Private Key</h2>
             <p className="text-sm text-neutral-400 mb-4">
               Export your key to import wallet elsewhere. Requires tweet verification.

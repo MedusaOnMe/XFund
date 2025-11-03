@@ -52,15 +52,40 @@ async function fetchMentions(sinceId = null) {
     }
 
     // Normalize tweet structure
-    return filteredTweets.map(tweet => ({
-      id: tweet.tweet_id || tweet.id,
-      text: tweet.text || tweet.full_text,
-      author: {
-        username: tweet.user?.username || tweet.user?.screen_name,
-        id: tweet.user?.id_str || tweet.user?.id
-      },
-      created_at: tweet.creation_date || tweet.created_at
-    }));
+    return filteredTweets.map(tweet => {
+      // Extract media from multiple possible locations
+      let media = [];
+
+      // Check various locations where media might be stored
+      if (tweet.media && Array.isArray(tweet.media)) {
+        media = tweet.media;
+      } else if (tweet.entities?.media && Array.isArray(tweet.entities.media)) {
+        media = tweet.entities.media;
+      } else if (tweet.extended_entities?.media && Array.isArray(tweet.extended_entities.media)) {
+        media = tweet.extended_entities.media;
+      } else if (tweet.mediaDetails && Array.isArray(tweet.mediaDetails)) {
+        media = tweet.mediaDetails;
+      } else if (tweet.photos && Array.isArray(tweet.photos)) {
+        // Some APIs return photos separately
+        media = tweet.photos.map(photo => ({
+          type: 'photo',
+          url: photo.url || photo.media_url_https || photo.media_url,
+          media_url_https: photo.url || photo.media_url_https || photo.media_url
+        }));
+      }
+
+
+      return {
+        id: tweet.tweet_id || tweet.id,
+        text: tweet.text || tweet.full_text,
+        author: {
+          username: tweet.user?.username || tweet.user?.screen_name,
+          id: tweet.user?.id_str || tweet.user?.id
+        },
+        created_at: tweet.creation_date || tweet.created_at,
+        media
+      };
+    });
 
   } catch (error) {
     console.error('Error fetching mentions:', error.message);
