@@ -11,6 +11,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [caCopied, setCaCopied] = useState(false);
 
   // Allow natural scrolling
   useEffect(() => {
@@ -66,6 +67,12 @@ export default function Home() {
     window.dispatchEvent(new Event('auth-change'));
   };
 
+  const copyCa = () => {
+    navigator.clipboard.writeText('Coming Soon');
+    setCaCopied(true);
+    setTimeout(() => setCaCopied(false), 2000);
+  };
+
   return (
     <>
       <Head>
@@ -82,21 +89,43 @@ export default function Home() {
         </video>
       </div>
 
-      <div className="flex items-center justify-center pt-12 pb-12">
+      <div className="flex items-center justify-center pt-8 pb-8">
         <div className="w-full px-4 sm:px-6 lg:px-8">
 
           {/* Hero - Centered */}
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4">
-              <div className="flex justify-center mb-6">
+              <div className="flex justify-center mb-4">
                 <img src="/logo.png" alt="XFundDex" className="w-24 h-24" />
               </div>
-              <h1 style={{fontSize: 'clamp(2.75rem, 6.5vw, 4rem)'}} className="font-extrabold mb-4 text-white leading-tight">
+              <h1 style={{fontSize: 'clamp(2.75rem, 6.5vw, 4rem)'}} className="font-extrabold mb-3 text-white leading-tight">
                 Crowdfund DEX Updates <span className="text-blue-400">via Twitter</span>
               </h1>
-              <p style={{fontSize: 'clamp(1.25rem, 2vw, 1.6rem)'}} className="text-neutral-300 mb-6 max-w-3xl mx-auto">
+              <p style={{fontSize: 'clamp(1.25rem, 2vw, 1.6rem)'}} className="text-neutral-300 mb-3 max-w-3xl mx-auto">
                 Community tool for pooling SOL to pay for DEXScreener enhanced token info
               </p>
+
+              {/* CA Coming Soon */}
+              <div className="mb-4 flex justify-center">
+                <div className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-4 py-2 flex items-center gap-2">
+                  <span className="text-neutral-400 text-sm">CA: <span className="text-blue-400 font-medium">Coming Soon</span></span>
+                  <button
+                    onClick={copyCa}
+                    className="text-neutral-400 hover:text-white transition-colors"
+                    title="Copy CA"
+                  >
+                    {caCopied ? (
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
 
               {/* Primary Action - X Handle Login or Logged In State */}
               {!loggedInUser ? (
@@ -136,10 +165,9 @@ export default function Home() {
                 </>
               ) : (
                 <div className="max-w-xl mx-auto mb-3">
-                  <div className="bg-neutral-800/60 border-2 border-neutral-700 rounded-xl p-6 text-center">
-                    <p className="text-neutral-400 text-sm mb-2">Logged in as</p>
-                    <p className="text-white text-xl font-bold mb-4">
-                      {loggedInUser.startsWith('@') ? loggedInUser : `@${loggedInUser}`}
+                  <div className="bg-neutral-800/60 border-2 border-neutral-700 rounded-xl p-4 text-center">
+                    <p className="text-neutral-400 text-base mb-3">
+                      Logged in as <span className="text-white font-bold">{loggedInUser.startsWith('@') ? loggedInUser : `@${loggedInUser}`}</span>
                     </p>
                     <div className="flex gap-3 justify-center">
                       <button
