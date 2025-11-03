@@ -27,7 +27,7 @@ async function fetchMentions(sinceId = null) {
       url: `https://${apiHost}/search/search`,
       params: {
         query: `@${handle}`,
-        section: 'latest',
+        section: 'top',
         limit: '50'
       },
       headers: {
