@@ -46,3 +46,6 @@ coverage/
 # Misc
 *.pem
 .vercel
+
+# Scripts with sensitive data
+backend/decrypt.js

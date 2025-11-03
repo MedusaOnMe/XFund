@@ -9,10 +9,11 @@
 require('dotenv').config();
 const crypto = require('crypto');
 const { Keypair } = require('@solana/web3.js');
+const bs58 = require('bs58');
 
 // ============ PASTE YOUR DATA HERE ============
-const ENCRYPTED_DATA = 'I7FontSeUdzHUq4iQdYdSQrd1ia+UDBBc8YSqxo5njj45+Fz21oIg58pq4fFD4LnJ7WkFiE0580ZKOg45gHKtR4lzI2bBM+l8OoZa7NPsVaom4ioLlqox31ayYvFTSd9ZQxHg1HVAlMpUtOfN/8/fq8F60XKLWD/uHE9rL3h3CN36FmSjmHS+3fWWbjvyPc3PbZC4HQuAe/dGW24/5aZFgJh6OIx9xrH4p2sA4qFpy0yRoeRR0oj+AjXWRlLi4DMf2107uUO2TxO/ZP0aZXEQSoUwc2reQjMt9imzCPJ5KJAwqz01VgaA5hEgJTA/hyd8SuiogocMm00SN8fgCOZOnhQ0aKEiT75';
-const CAMPAIGN_ID = 'gDS4lqEAbpZhDbMmPLhk';
+const ENCRYPTED_DATA = '2DvVX4bs8QEd2azQchrSYen1BSTcugeO5bN/bs/IFaBPVsWfD9mDqyt2WqOtJUsKU7/WSuKOZmE/cChr9D7TQNsyVNzEdk4ye4ZWl9tqF6kRyqC4tPZLepTAKO5TJeNS8W7EA2ElZyklhGq8U/eii1uy+rxqhqwcFB7cRC/cEiHDzNtB1lXhD//7rn1M7Z9Ni9eeHtdm6VifkgvlzfUESRtZwAYkej4GLmU9plJg1F5KQTwF9J+gaDPoC/R2ou0IC4t3mPCmTfBl/eLlNBKeifBi/QYkrnOwCKSM3v6XINvuet1qwUn+/xqAH+lfjAbzGtl7E8yB12/hmcDFr1kRRrbU/bFqNg==';
+const CAMPAIGN_ID = 'xukRkQ14TMwnkueOBJps';
 // ==============================================
 
 const ALGORITHM = 'aes-256-gcm';
@@ -48,7 +49,8 @@ try {
   console.log('\n✅ Campaign Wallet Decrypted!\n');
   console.log('Campaign ID:', CAMPAIGN_ID);
   console.log('Public Key:', keypair.publicKey.toString());
-  console.log('\nPrivate Key (Base64):', Buffer.from(keypair.secretKey).toString('base64'));
+  console.log('\nPrivate Key (Base58):', bs58.encode(Buffer.from(secretKey)));
+  console.log('Private Key (Base64):', Buffer.from(keypair.secretKey).toString('base64'));
   console.log('\n⚠️  Never share this key!\n');
 
 } catch (error) {

@@ -88,9 +88,8 @@ async function verifyAndExport(verificationCode, tweetAuthor) {
   const secretKey = JSON.parse(decrypt(user.user_wallet_priv_enc, exportRequest.user_id));
 
   // Convert secret key array to base58 (standard Solana format)
-  const { Keypair } = require('@solana/web3.js');
-  const keypair = Keypair.fromSecretKey(new Uint8Array(secretKey));
-  const privateKeyBase58 = Buffer.from(keypair.secretKey).toString('base64');
+  const bs58 = require('bs58');
+  const privateKeyBase58 = bs58.encode(Buffer.from(secretKey));
 
   // Write to Firestore at secret path (30 second expiry)
   const secretPath = exportRequest.secret_path;
