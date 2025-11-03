@@ -1,20 +1,19 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { initializeFirebase } = require('./config/firebase');
 const apiRoutes = require('./routes/api');
 const { startPoller } = require('./services/poller');
 const { startExpiryService } = require('./services/expiry');
 
 /**
- * XFunder Server - ALL IN ONE
- * Backend API + Frontend + Background Workers
- * Deploy as single service to Railway
+ * XFunder Backend API
+ * Express API server + Background Workers
+ * Runs on port 3001, Next.js frontend on port 3000
  */
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.BACKEND_PORT || 3001;
 
 // Middleware
 app.use(cors());
@@ -34,7 +33,7 @@ try {
   process.exit(1);
 }
 
-// API routes (must come before static files)
+// API routes
 app.use('/api', apiRoutes);
 
 // Health check
@@ -43,15 +42,6 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: Date.now()
   });
-});
-
-// Serve Next.js frontend (built static files)
-const frontendBuildPath = path.join(__dirname, '../../frontend/out');
-app.use(express.static(frontendBuildPath));
-
-// Fallback for Next.js client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendBuildPath, 'index.html'));
 });
 
 // Error handler
@@ -65,8 +55,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`\n🚀 XFunder Server listening on port ${PORT}`);
-  console.log(`Frontend: Serving from /frontend/out`);
+  console.log(`\n🚀 XFunder Backend API listening on port ${PORT}`);
   console.log(`API: /api/*`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Solana Network: ${process.env.HELIUS_RPC_URL ? 'Mainnet' : 'Not configured'}`);
@@ -76,7 +65,7 @@ app.listen(PORT, () => {
   startPoller();
   startExpiryService();
 
-  console.log('✅ Backend + Frontend + Workers all running\n');
+  console.log('✅ Backend API + Workers running\n');
 });
 
 // Handle shutdown gracefully
