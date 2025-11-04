@@ -1,5 +1,6 @@
 const { getFirestore } = require('firebase-admin/firestore');
 const { cleanupExpiredExports } = require('../lib/export');
+const { cleanupExpiredWithdrawals } = require('../lib/withdraw');
 
 /**
  * Expiry service
@@ -63,6 +64,9 @@ async function runCleanup() {
 
     // Cleanup expired export requests and keys
     await cleanupExpiredExports();
+
+    // Cleanup expired withdrawal requests
+    await cleanupExpiredWithdrawals();
 
     console.log('Cleanup completed');
 

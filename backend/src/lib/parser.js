@@ -8,6 +8,7 @@ const PATTERNS = {
   CREATE: /@XFundDex\s+create\s+([1-9A-HJ-NP-Za-km-z]{32,44})/i,
   CONTRIBUTE: /@XFundDex\s+fund\s+([0-9.]+)\s+([1-9A-HJ-NP-Za-km-z]{32,44})/i,
   EXPORT: /@XFundDex\s+export\s+([0-9]{6})/i,
+  WITHDRAW: /@XFundDex\s+withdraw\s+([0-9]{6})/i,
   UPDATE: /@XFundDex\s+update\s+([0-9]{6})/i
 };
 
@@ -59,6 +60,17 @@ function parseTweet(tweetText) {
       type: 'EXPORT',
       data: {
         verificationCode: exportMatch[1]
+      }
+    };
+  }
+
+  // Try WITHDRAW command
+  const withdrawMatch = tweetText.match(PATTERNS.WITHDRAW);
+  if (withdrawMatch) {
+    return {
+      type: 'WITHDRAW',
+      data: {
+        verificationCode: withdrawMatch[1]
       }
     };
   }

@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { QRCodeSVG } from 'qrcode.react';
 import { getWallet, getUserCampaigns } from '../lib/api';
 import ExportModal from '../components/ExportModal';
+import WithdrawModal from '../components/WithdrawModal';
 import OnboardingModal from '../components/OnboardingModal';
 import Navbar from '../components/Navbar';
 
@@ -18,6 +19,7 @@ export default function Wallet() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [copied, setCopied] = useState(false);
   const [myCampaigns, setMyCampaigns] = useState([]);
@@ -68,6 +70,11 @@ export default function Wallet() {
     navigator.clipboard.writeText(walletPub);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleWithdrawSuccess = () => {
+    // Reload wallet to get updated balance
+    loadWallet(userId);
   };
 
   if (loading) {
@@ -172,6 +179,20 @@ export default function Wallet() {
             </div>
           )}
 
+          {/* Withdraw */}
+          <div className="card mt-8">
+            <h2 className="text-lg font-bold text-white mb-2">Withdraw SOL</h2>
+            <p className="text-sm text-neutral-400 mb-4">
+              Send SOL from your XFundDex wallet to any external address. Requires tweet verification.
+            </p>
+            <button
+              onClick={() => setShowWithdrawModal(true)}
+              className="btn btn-primary text-sm"
+            >
+              Withdraw
+            </button>
+          </div>
+
           {/* Export */}
           <div className="card border border-red-600/30 mt-8">
             <h2 className="text-lg font-bold text-red-400 mb-2">Export Private Key</h2>
@@ -187,6 +208,17 @@ export default function Wallet() {
           </div>
         </div>
       </div>
+
+      {/* Withdraw Modal */}
+      {showWithdrawModal && (
+        <WithdrawModal
+          userId={userId}
+          xHandle={xHandle}
+          balance={balance}
+          onClose={() => setShowWithdrawModal(false)}
+          onSuccess={handleWithdrawSuccess}
+        />
+      )}
 
       {/* Export Modal */}
       {showExportModal && (

@@ -31,8 +31,13 @@ export default function OnboardingModal({ isOpen, onClose, isManualOpen = false 
       images: ['/onboarding/FundTweet.png']
     },
     {
+      title: 'Withdraw Your SOL',
+      content: 'Go to your wallet page, click "Withdraw". Enter the destination address and amount, then tweet the verification code to verify wallet ownership and send SOL to any external wallet.',
+      images: ['/onboarding/WitdrawModal.png', '/onboarding/WitdrawVerify.png']
+    },
+    {
       title: 'Export Your Keys',
-      content: 'Tweet the verification code in order to prove you are the owner of the Twitter account. This securely exports your private key to import into any Solana wallet.',
+      content: 'Go to your wallet page, click export. Tweet the verification code in order to prove you are the owner of the Twitter account. This securely exports your private key to import into any Solana wallet.',
       images: ['/onboarding/ExportKey.png', '/onboarding/ExportedKey.png']
     }
   ];
@@ -83,8 +88,8 @@ export default function OnboardingModal({ isOpen, onClose, isManualOpen = false 
 
     // 2 images
     if (images.length === 2) {
-      // Export Keys (step 5): stack vertically on mobile
-      if (step === 5) {
+      // Withdraw (step 6) and Export Keys (step 7): stack vertically on mobile
+      if (step === 5 || step === 6) {
         return (
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 max-h-[50vh] md:h-96">
             {images.map((img, idx) => (

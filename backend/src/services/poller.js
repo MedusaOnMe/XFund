@@ -2,6 +2,7 @@ const { fetchMentions } = require('../lib/twitter');
 const { parseTweet } = require('../lib/parser');
 const { createCampaign, findCampaign, contribute } = require('../lib/campaign');
 const { verifyAndExport } = require('../lib/export');
+const { verifyAndWithdraw } = require('../lib/withdraw');
 const { verifyUpdateRequest } = require('../lib/update');
 const { notifyCampaignCreated, notifyDonation } = require('../lib/telegram');
 const { getFirestore } = require('firebase-admin/firestore');
@@ -63,6 +64,10 @@ async function processTweet(tweet) {
 
       case 'EXPORT':
         await handleExportCommand(tweet, command.data);
+        break;
+
+      case 'WITHDRAW':
+        await handleWithdrawCommand(tweet, command.data);
         break;
 
       case 'UPDATE':
@@ -203,6 +208,22 @@ async function handleExportCommand(tweet, data) {
 }
 
 /**
+ * Handle WITHDRAW command
+ */
+async function handleWithdrawCommand(tweet, data) {
+  const { verificationCode } = data;
+
+  // Verify and process withdrawal
+  const result = await verifyAndWithdraw(verificationCode, tweet.author.username);
+
+  if (result.success) {
+    console.log(`Withdrawal verified and processed for @${tweet.author.username}, tx: ${result.signature}`);
+  } else {
+    console.log(`Withdrawal verification failed: ${result.error}`);
+  }
+}
+
+/**
  * Handle UPDATE command
  */
 async function handleUpdateCommand(tweet, data) {
@@ -270,13 +291,13 @@ async function poll() {
  * Start polling loop
  */
 function startPoller() {
-  console.log('Starting Twitter mention poller (every 5 minutes)');
+  console.log('Starting Twitter mention poller (every 1 hour)');
 
   // Initial poll
   poll();
 
   // Set interval
-  setInterval(poll, 300000); // 5 minutes
+  setInterval(poll, 3600000); // 1 hour
 }
 
 module.exports = {

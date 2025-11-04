@@ -212,7 +212,7 @@ export default function Home() {
                         <code style={{fontSize: 'clamp(0.75rem, 1.05vw, 0.85rem)'}} className="text-neutral-300 break-all">@XFundDex create DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263</code>
                       </div>
                       <p style={{fontSize: 'clamp(0.7rem, 1vw, 0.8rem)'}} className="text-neutral-400 mt-1">
-                        <strong>Tip:</strong> Attach images to your tweet or add them later via the campaign page
+                        Attach images to your tweet or add them later via the campaign page
                       </p>
                     </div>
                   </div>
@@ -231,6 +231,9 @@ export default function Home() {
                         <p style={{fontSize: 'clamp(0.7rem, 1vw, 0.8rem)'}} className="text-neutral-500 mb-0.5">Example:</p>
                         <code style={{fontSize: 'clamp(0.75rem, 1.05vw, 0.85rem)'}} className="text-neutral-300 break-all">@XFundDex fund 0.5 DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263</code>
                       </div>
+                      <p style={{fontSize: 'clamp(0.7rem, 1vw, 0.8rem)'}} className="text-neutral-400 mt-1">
+                        Ensure you have sufficient SOL in your XFundDex wallet
+                      </p>
                     </div>
                   </div>
                 </div>

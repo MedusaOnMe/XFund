@@ -5,6 +5,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { createWallet, getBalance, sendSOL, isValidAddress } = require('../lib/solana');
 const { encrypt } = require('../lib/encrypt');
 const { createExportRequest } = require('../lib/export');
+const { createWithdrawRequest } = require('../lib/withdraw');
 const { createUpdateRequest } = require('../lib/update');
 const { getCampaign, listCampaigns, getCampaignContributions, updateCampaignMetadata } = require('../lib/campaign');
 const { uploadImage, isValidImageType, isValidFileSize } = require('../lib/storage');
@@ -203,6 +204,81 @@ router.get('/export-status/:secretPath', async (req, res) => {
 
   } catch (error) {
     console.error('Export status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/withdraw-request
+ * Request withdrawal
+ * Body: { user_id, x_handle, destination_address, amount }
+ * Returns: { verification_code, withdrawal_path }
+ */
+router.post('/withdraw-request', async (req, res) => {
+  try {
+    const { user_id, x_handle, destination_address, amount } = req.body;
+
+    if (!user_id || !x_handle || !destination_address || !amount) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Create withdrawal request
+    const { verificationCode, withdrawalPath } = await createWithdrawRequest(
+      user_id,
+      x_handle,
+      destination_address,
+      amount
+    );
+
+    return res.json({
+      verification_code: verificationCode,
+      withdrawal_path: withdrawalPath
+    });
+
+  } catch (error) {
+    console.error('Withdrawal request error:', error);
+    res.status(400).json({ error: error.message || 'Failed to create withdrawal request' });
+  }
+});
+
+/**
+ * GET /api/withdraw-status/:withdrawalPath
+ * Check if withdrawal is completed (frontend polls this every 2s)
+ * Returns: { completed: boolean, signature?: string, error?: string }
+ */
+router.get('/withdraw-status/:withdrawalPath', async (req, res) => {
+  try {
+    const { withdrawalPath } = req.params;
+    const db = getFirestore();
+
+    // Check if withdrawal is completed
+    const withdrawalDoc = await db.collection('completed_withdrawals').doc(withdrawalPath).get();
+
+    if (!withdrawalDoc.exists) {
+      return res.json({ completed: false });
+    }
+
+    const withdrawalData = withdrawalDoc.data();
+
+    // Delete the document after reading (one-time read)
+    await db.collection('completed_withdrawals').doc(withdrawalPath).delete();
+
+    if (withdrawalData.error) {
+      return res.json({
+        completed: true,
+        error: withdrawalData.error
+      });
+    }
+
+    return res.json({
+      completed: true,
+      signature: withdrawalData.signature,
+      amount: withdrawalData.amount,
+      destination: withdrawalData.destination
+    });
+
+  } catch (error) {
+    console.error('Withdrawal status error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

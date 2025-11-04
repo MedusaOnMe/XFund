@@ -73,6 +73,27 @@ export async function checkExportStatus(secretPath) {
 }
 
 /**
+ * Request withdrawal
+ */
+export async function requestWithdraw(userId, xHandle, destinationAddress, amount) {
+  const response = await api.post('/api/withdraw-request', {
+    user_id: userId,
+    x_handle: xHandle,
+    destination_address: destinationAddress,
+    amount: amount
+  });
+  return response.data;
+}
+
+/**
+ * Check withdrawal status (poll this every 2 seconds)
+ */
+export async function checkWithdrawStatus(withdrawalPath) {
+  const response = await api.get(`/api/withdraw-status/${withdrawalPath}`);
+  return response.data;
+}
+
+/**
  * Request campaign metadata update
  */
 export async function requestUpdate(campaignId, xHandle) {
