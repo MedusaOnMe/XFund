@@ -65,19 +65,21 @@ async function fetchTokenMetadata(tokenAddress) {
     if (response.data) {
       const tokenData = response.data;
 
-      // Extract metadata from pump.fun response (but NOT images - those come from tweet)
+      // Extract metadata from pump.fun response (including image as fallback)
       const metadata = {
         description: tokenData.description || null,
         twitter_url: tokenData.twitter || null,
         telegram_url: tokenData.telegram || null,
         website_url: tokenData.website || null,
         token_name: tokenData.name || null,
-        token_symbol: tokenData.symbol || null
+        token_symbol: tokenData.symbol || null,
+        token_image_url: tokenData.image_uri || tokenData.image || null // Capture token logo
       };
 
       console.log(`Fetched metadata from pump.fun for ${tokenAddress}:`, {
         name: metadata.token_name,
-        symbol: metadata.token_symbol
+        symbol: metadata.token_symbol,
+        has_image: !!metadata.token_image_url
       });
 
       return metadata;
@@ -113,7 +115,7 @@ async function fetchTokenMetadata(tokenAddress) {
 /**
  * Enrich campaign metadata with on-chain token data
  * Merges existing metadata with on-chain data (existing data takes priority)
- * Images come from tweet, not from token data
+ * Images from tweet preferred, falls back to token image if no tweet images
  */
 function enrichMetadata(existingMetadata, tokenData) {
   if (!tokenData) {
@@ -121,7 +123,7 @@ function enrichMetadata(existingMetadata, tokenData) {
   }
 
   return {
-    main_image_url: existingMetadata.main_image_url || null,
+    main_image_url: existingMetadata.main_image_url || tokenData.token_image_url || null,
     header_image_url: existingMetadata.header_image_url || null,
     description: existingMetadata.description || tokenData.description,
     twitter_url: existingMetadata.twitter_url || tokenData.twitter_url,
