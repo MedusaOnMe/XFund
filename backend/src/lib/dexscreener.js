@@ -8,6 +8,23 @@ const { getConnection } = require('./solana');
  */
 
 /**
+ * Convert IPFS URLs to use reliable gateway
+ * @param {string} url - Original image URL
+ * @returns {string} - Converted URL with reliable gateway
+ */
+function normalizeImageUrl(url) {
+  if (!url) return null;
+
+  // If it's an IPFS URL with cf-ipfs.com or other unreliable gateways, convert to ipfs.io
+  if (url.includes('/ipfs/')) {
+    const ipfsHash = url.split('/ipfs/')[1];
+    return `https://ipfs.io/ipfs/${ipfsHash}`;
+  }
+
+  return url;
+}
+
+/**
  * Fetch token name and symbol from DEXScreener
  * @param {string} tokenAddress - Solana token contract address
  * @returns {Promise<object>} - Token name and symbol only
@@ -66,6 +83,7 @@ async function fetchTokenMetadata(tokenAddress) {
       const tokenData = response.data;
 
       // Extract metadata from pump.fun response (including image as fallback)
+      const rawImageUrl = tokenData.image_uri || tokenData.image || null;
       const metadata = {
         description: tokenData.description || null,
         twitter_url: tokenData.twitter || null,
@@ -73,7 +91,7 @@ async function fetchTokenMetadata(tokenAddress) {
         website_url: tokenData.website || null,
         token_name: tokenData.name || null,
         token_symbol: tokenData.symbol || null,
-        token_image_url: tokenData.image_uri || tokenData.image || null // Capture token logo
+        token_image_url: normalizeImageUrl(rawImageUrl) // Capture token logo with reliable gateway
       };
 
       console.log(`Fetched metadata from pump.fun for ${tokenAddress}:`, {
