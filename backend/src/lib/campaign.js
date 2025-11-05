@@ -4,6 +4,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { fetchTokenMetadata, enrichMetadata } = require('./dexscreener');
 const { classifyAndUploadTweetImages } = require('./storage');
 const { calculateSolAmount, solToUsd } = require('./jupiter');
+const { quoteTweet, postTweet } = require('./twitter');
 
 /**
  * Campaign operations
@@ -103,6 +104,25 @@ async function createCampaign(campaignType, tokenCA, creatorUserId, tweet = null
 
   console.log(`Created ${campaignType.toUpperCase()} campaign: ${campaignId} for token ${tokenCA}`);
 
+  // Quote tweet the campaign creation (if tweet provided)
+  if (tweet && tweet.id) {
+    const frontendUrl = process.env.FRONTEND_URL || 'https://xfunddex.com';
+    const campaignUrl = `${frontendUrl}/campaign/${campaignId}`;
+    const tokenName = metadata.token_name || metadata.token_symbol || 'this token';
+
+    let quoteText;
+    if (campaignType === 'dex') {
+      quoteText = `New campaign created for ${tokenName}!\n\nGoal: $300 USD for DexScreener update\nDeadline: 24 hours\n\nView campaign: ${campaignUrl}`;
+    } else {
+      quoteText = `New boost campaign created for ${tokenName}!\n\nView campaign: ${campaignUrl}`;
+    }
+
+    // Don't await - let it post in background
+    quoteTweet(quoteText, tweet.id).catch(err => {
+      console.error('Failed to quote tweet campaign:', err);
+    });
+  }
+
   return campaign;
 }
 
@@ -189,6 +209,23 @@ async function contribute(campaignId, userId, amount) {
       updateData.status = 'funded';
       updateData.funded_at = Date.now();
       console.log(`Campaign ${campaignId} is now FULLY FUNDED! Reached $${walletUsdValue.usdValue} USD (goal: $${campaign.goal_usd})`);
+
+      // Tweet about campaign being fully funded
+      const frontendUrl = process.env.FRONTEND_URL || 'https://xfunddex.com';
+      const campaignUrl = `${frontendUrl}/campaign/${campaignId}`;
+      const tokenName = campaign.metadata?.token_name || campaign.metadata?.token_symbol || campaign.token_ca;
+
+      let fundedText;
+      if (campaign.type === 'dex') {
+        fundedText = `🎉 Campaign FUNDED!\n\n${tokenName} reached $${Math.round(walletUsdValue.usdValue)} goal!\n\nDexScreener update incoming 🚀\n\nView: ${campaignUrl}`;
+      } else {
+        fundedText = `🎉 Boost Campaign FUNDED!\n\n${tokenName} is boosted!\n\nView: ${campaignUrl}`;
+      }
+
+      // Don't await - let it post in background
+      postTweet(fundedText).catch(err => {
+        console.error('Failed to tweet campaign funded:', err);
+      });
     }
   }
 

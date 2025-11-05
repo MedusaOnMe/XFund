@@ -113,6 +113,7 @@ export default function Wallet() {
             <div className="card h-full flex flex-col justify-center text-center">
               <p className="text-sm text-neutral-400 mb-2">Balance</p>
               <p className="text-5xl font-bold text-white">{balance.toFixed(4)} <span className="text-2xl text-neutral-400">SOL</span></p>
+              <p className="text-xs text-neutral-500 mt-3">Refresh page to update balance</p>
             </div>
 
             {/* Deposit */}

@@ -1,9 +1,39 @@
 const axios = require('axios');
+const { TwitterApi } = require('twitter-api-v2');
 
 /**
- * Twitter API integration via RapidAPI Twitter154
- * Polls @mentions of the XFundDex handle
+ * Twitter API integration
+ * - RapidAPI Twitter154 for reading mentions
+ * - Official X API v2 for posting tweets
  */
+
+/**
+ * Get Official X API v2 client for posting
+ */
+let twitterClient;
+
+function getTwitterClient() {
+  if (!twitterClient) {
+    const appKey = process.env.X_API_KEY;
+    const appSecret = process.env.X_API_SECRET;
+    const accessToken = process.env.X_ACCESS_TOKEN;
+    const accessSecret = process.env.X_ACCESS_TOKEN_SECRET;
+
+    if (!appKey || !appSecret || !accessToken || !accessSecret) {
+      console.warn('Official X API credentials not configured - posting disabled');
+      return null;
+    }
+
+    twitterClient = new TwitterApi({
+      appKey,
+      appSecret,
+      accessToken,
+      accessSecret,
+    });
+  }
+
+  return twitterClient;
+}
 
 /**
  * Fetch mentions of @XFundDex handle
@@ -125,7 +155,84 @@ async function getUserByUsername(username) {
   }
 }
 
+/**
+ * Post a regular tweet from @XFundDex account
+ * @param {string} text - Tweet text (max 280 chars)
+ * @returns {Promise<object|null>} Tweet data or null if posting disabled
+ */
+async function postTweet(text) {
+  const twitter = getTwitterClient();
+
+  if (!twitter) {
+    console.log('Posting disabled - X API credentials not configured');
+    return null;
+  }
+
+  try {
+    const tweet = await twitter.v2.tweet(text);
+    console.log(`✅ Tweet posted successfully: https://x.com/XFundDex/status/${tweet.data.id}`);
+    return tweet.data;
+  } catch (error) {
+    console.error('❌ Error posting tweet:', error);
+    return null;
+  }
+}
+
+/**
+ * Quote tweet - post with a quote of another tweet
+ * @param {string} text - Quote tweet text
+ * @param {string} tweetId - ID of tweet to quote
+ * @returns {Promise<object|null>} Tweet data or null if posting disabled
+ */
+async function quoteTweet(text, tweetId) {
+  const twitter = getTwitterClient();
+
+  if (!twitter) {
+    console.log('Posting disabled - X API credentials not configured');
+    return null;
+  }
+
+  try {
+    const tweet = await twitter.v2.tweet({
+      text,
+      quote_tweet_id: tweetId
+    });
+    console.log(`✅ Quote tweet posted successfully: https://x.com/XFundDex/status/${tweet.data.id}`);
+    return tweet.data;
+  } catch (error) {
+    console.error('❌ Error posting quote tweet:', error);
+    return null;
+  }
+}
+
+/**
+ * Reply to a tweet
+ * @param {string} text - Reply text
+ * @param {string} tweetId - ID of tweet to reply to
+ * @returns {Promise<object|null>} Tweet data or null if posting disabled
+ */
+async function replyToTweet(text, tweetId) {
+  const twitter = getTwitterClient();
+
+  if (!twitter) {
+    console.log('Posting disabled - X API credentials not configured');
+    return null;
+  }
+
+  try {
+    const tweet = await twitter.v2.reply(text, tweetId);
+    console.log(`✅ Reply posted successfully: https://x.com/XFundDex/status/${tweet.data.id}`);
+    return tweet.data;
+  } catch (error) {
+    console.error('❌ Error posting reply:', error);
+    return null;
+  }
+}
+
 module.exports = {
   fetchMentions,
-  getUserByUsername
+  getUserByUsername,
+  postTweet,
+  quoteTweet,
+  replyToTweet
 };

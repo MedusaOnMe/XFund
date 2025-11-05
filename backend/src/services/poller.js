@@ -291,13 +291,13 @@ async function poll() {
  * Start polling loop
  */
 function startPoller() {
-  console.log('Starting Twitter mention poller (every 1 hour)');
+  console.log('Starting Twitter mention poller (every 30 seconds)');
 
   // Initial poll
   poll();
 
   // Set interval
-  setInterval(poll, 3600000); // 1 hour
+  setInterval(poll, 30000); // 30 seconds
 }
 
 module.exports = {
